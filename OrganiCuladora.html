@@ -1,0 +1,1377 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Química Orgánica v1.0.0</title>
+
+    <!-- Font Awesome 6 Free CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        :root {
+            --bg: #FFFFFF;
+            --border: rgb(46, 46, 46);
+            --accent: #486648;
+            --secondary: #BEAF9D;
+            --text: #1A1A1A;
+            --error-text: #8B1A1A;
+            --shadow: rgba(0, 0, 0, 0.25);
+            --font-mono: 'Courier New', 'Consolas', 'Monaco', monospace;
+            --font-sans: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background: #F0EDE8;
+            color: var(--text);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        /* ========== BARRA SUPERIOR ========== */
+        .top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--bg);
+            border-bottom: 3px solid var(--border);
+            padding: 0 16px;
+            height: 48px;
+            flex-shrink: 0;
+            gap: 12px;
+        }
+        .top-bar .logo {
+            font-family: var(--font-mono);
+            font-weight: 900;
+            font-size: 1rem;
+            letter-spacing: 0.5px;
+            color: var(--text);
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .top-bar .logo i {
+            color: var(--accent);
+            font-size: 1.1rem;
+        }
+        .top-bar .logo span {
+            color: var(--accent);
+        }
+        .mode-switch {
+            display: flex;
+            gap: 0;
+            border: 2px solid var(--border);
+            background: var(--bg);
+        }
+        .mode-btn {
+            padding: 8px 18px;
+            cursor: pointer;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            background: var(--bg);
+            color: var(--text);
+            border: none;
+            transition: all 0.1s ease;
+            text-transform: uppercase;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .mode-btn i {
+            font-size: 0.85rem;
+        }
+        .mode-btn.active {
+            background: var(--accent);
+            color: #FFFFFF;
+        }
+        .mode-btn.active i {
+            color: #FFFFFF;
+        }
+        .mode-btn:hover:not(.active) {
+            background: #E8E5DE;
+        }
+        .top-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .btn-clear {
+            padding: 7px 14px;
+            cursor: pointer;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            background: var(--bg);
+            color: var(--text);
+            border: 2px solid var(--border);
+            transition: all 0.1s ease;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .btn-clear i {
+            font-size: 0.8rem;
+            color: var(--accent);
+        }
+        .btn-clear:hover {
+            background: #F5F0E8;
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* ========== CONTENEDOR PRINCIPAL ========== */
+        .main-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* ========== PANEL LATERAL ========== */
+        .side-panel {
+            width: 220px;
+            flex-shrink: 0;
+            background: var(--bg);
+            border-right: 3px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            padding: 12px 8px;
+            gap: 10px;
+        }
+        .side-panel h3 {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--accent);
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 4px;
+            margin-bottom: 2px;
+            text-align: center;
+        }
+        .element-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            justify-content: center;
+        }
+        .draggable-element {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            cursor: grab;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 0.75rem;
+            font-family: var(--font-mono);
+            color: #fff;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+            border: 2px solid var(--border);
+            transition: transform 0.08s ease, box-shadow 0.08s ease;
+            position: relative;
+            box-shadow: 3px 4px 0px rgba(0, 0, 0, 0.3), inset -3px -3px 6px rgba(0, 0, 0, 0.35),
+                inset 3px 3px 8px rgba(255, 255, 255, 0.25);
+            background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.45) 0%, rgba(120, 120, 120, 0.1) 50%, rgba(0, 0, 0, 0.4) 100%);
+        }
+        .draggable-element:active {
+            cursor: grabbing;
+            transform: scale(0.92);
+            box-shadow: 1px 2px 0px rgba(0, 0, 0, 0.4), inset -2px -2px 4px rgba(0, 0, 0, 0.5),
+                inset 2px 2px 4px rgba(255, 255, 255, 0.2);
+        }
+        /* Colores por tipo */
+        .el-C {
+            background-color: #404040;
+        }
+        .el-H {
+            background-color: #8B8B8B;
+        }
+        .el-O {
+            background-color: #C52828;
+        }
+        .el-N {
+            background-color: #1B5BA1;
+        }
+        .el-S {
+            background-color: #C4941A;
+        }
+        .el-P {
+            background-color: #C45A1A;
+        }
+        .el-Cl {
+            background-color: #2E8B2E;
+        }
+        .el-Br {
+            background-color: #6B2E2E;
+        }
+        .el-I {
+            background-color: #4B0082;
+        }
+        .el-F {
+            background-color: #6BAF6B;
+        }
+        .el-group {
+            background-color: #5C4A3A;
+            border-radius: 4px;
+            width: auto;
+            min-width: 52px;
+            padding: 0 6px;
+            font-size: 0.65rem;
+            letter-spacing: 0.3px;
+        }
+        .el-benceno {
+            background-color: #3A3A5C;
+            border-radius: 4px;
+            width: auto;
+            min-width: 56px;
+            padding: 0 6px;
+            font-size: 0.6rem;
+            letter-spacing: 0.3px;
+        }
+        .section-label {
+            font-family: var(--font-mono);
+            font-size: 0.6rem;
+            color: var(--secondary);
+            text-align: center;
+            letter-spacing: 1px;
+            margin-top: 2px;
+        }
+
+        /* ========== ÁREA CENTRAL ========== */
+        .center-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg);
+            position: relative;
+            min-width: 0;
+        }
+        .canvas-wrapper {
+            flex: 1;
+            position: relative;
+            cursor: crosshair;
+            border-bottom: 3px solid var(--border);
+            background: #FDFCF9;
+            background-image: radial-gradient(circle, #e8e4da 1px, transparent 1px);
+            background-size: 20px 20px;
+            overflow: hidden;
+        }
+        canvas {
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        .notation-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 14px;
+            background: var(--bg);
+            border-top: 2px solid var(--secondary);
+            flex-shrink: 0;
+        }
+        .notation-bar label {
+            font-family: var(--font-mono);
+            font-weight: 700;
+            font-size: 0.7rem;
+            letter-spacing: 0.5px;
+            color: var(--accent);
+            white-space: nowrap;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .notation-bar label i {
+            font-size: 0.85rem;
+        }
+        .notation-input {
+            flex: 1;
+            padding: 8px 12px;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            border: 2px solid var(--border);
+            background: #FDFCF9;
+            color: var(--text);
+            letter-spacing: 0.3px;
+            outline: none;
+            transition: border-color 0.15s ease;
+        }
+        .notation-input:focus {
+            border-color: var(--accent);
+            background: #FFFEF9;
+        }
+        .btn-parse {
+            padding: 8px 16px;
+            cursor: pointer;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            background: var(--accent);
+            color: #fff;
+            border: 2px solid var(--border);
+            text-transform: uppercase;
+            transition: all 0.1s ease;
+        }
+        .btn-parse:hover {
+            background: #3a5a3a;
+        }
+
+        /* ========== VISOR README ========== */
+        .readme-viewer {
+            display: none;
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px 32px;
+            background: #FDFCF9;
+            font-family: var(--font-sans);
+            line-height: 1.7;
+            color: var(--text);
+            border-left: 1px solid var(--secondary);
+        }
+        .readme-viewer.active {
+            display: block;
+        }
+        .readme-viewer h1 {
+            font-family: var(--font-mono);
+            font-size: 1.6rem;
+            border-bottom: 3px solid var(--border);
+            padding-bottom: 8px;
+            margin-bottom: 16px;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .readme-viewer h1 i {
+            color: var(--accent);
+            font-size: 1.3rem;
+        }
+        .readme-viewer h2 {
+            font-family: var(--font-mono);
+            font-size: 1.1rem;
+            color: var(--accent);
+            margin-top: 20px;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+        .readme-viewer h3 {
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            margin-top: 14px;
+            margin-bottom: 6px;
+            color: var(--text);
+        }
+        .readme-viewer p {
+            margin-bottom: 10px;
+        }
+        .readme-viewer table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0;
+            font-size: 0.85rem;
+        }
+        .readme-viewer table th,
+        .readme-viewer table td {
+            border: 2px solid var(--border);
+            padding: 6px 10px;
+            text-align: left;
+        }
+        .readme-viewer table th {
+            background: var(--accent);
+            color: #fff;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.7rem;
+            letter-spacing: 0.5px;
+        }
+        .readme-viewer code {
+            background: #F0EDE8;
+            padding: 2px 6px;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            border: 1px solid var(--secondary);
+        }
+        .readme-viewer pre {
+            background: #F5F2EB;
+            padding: 12px;
+            border: 2px solid var(--border);
+            overflow-x: auto;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            margin: 10px 0;
+        }
+        .readme-viewer hr {
+            border: none;
+            border-top: 2px solid var(--secondary);
+            margin: 16px 0;
+        }
+        .readme-viewer strong {
+            color: var(--accent);
+        }
+
+        /* ========== NOTIFICACIÓN DE ERROR ========== */
+        .error-toast {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: var(--secondary);
+            border: 3px solid var(--accent);
+            color: var(--error-text);
+            padding: 12px 18px;
+            font-family: var(--font-mono);
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            z-index: 1000;
+            cursor: pointer;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            pointer-events: none;
+            max-width: 420px;
+            box-shadow: 6px 6px 0px rgba(0, 0, 0, 0.25);
+        }
+        .error-toast.visible {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+        .error-toast:hover {
+            background: #d5c8b5;
+        }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 768px) {
+            .side-panel {
+                width: 140px;
+                padding: 8px 4px;
+                gap: 6px;
+            }
+            .draggable-element {
+                width: 38px;
+                height: 38px;
+                font-size: 0.65rem;
+            }
+            .el-group,
+            .el-benceno {
+                min-width: 40px;
+                font-size: 0.55rem;
+                padding: 0 4px;
+            }
+            .top-bar .logo {
+                font-size: 0.8rem;
+            }
+            .mode-btn {
+                padding: 6px 10px;
+                font-size: 0.7rem;
+            }
+            .readme-viewer {
+                padding: 12px 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ==================== BARRA SUPERIOR ==================== -->
+    <header class="top-bar">
+        <div class="logo">
+            <i class="fa-solid fa-flask"></i> <span>ORGANI</span>CULADORA <span style="font-size:0.7rem;">v1.0.0</span>
+        </div>
+        <div class="mode-switch">
+            <button class="mode-btn active" id="btnCalcMode" title="Modo Calculadora Gráfica">
+                <i class="fa-solid fa-dna"></i> Calculadora
+            </button>
+            <button class="mode-btn" id="btnReadmeMode" title="Ver documentación">
+                <i class="fa-solid fa-file-lines"></i> README
+            </button>
+        </div>
+        <div class="top-actions">
+            <button class="btn-clear" id="btnClearCanvas" title="Limpiar lienzo">
+                <i class="fa-solid fa-trash-can"></i> Limpiar
+            </button>
+        </div>
+    </header>
+
+    <!-- ==================== CONTENEDOR PRINCIPAL ==================== -->
+    <div class="main-container">
+
+        <!-- ========== PANEL LATERAL ========== -->
+        <aside class="side-panel" id="sidePanel">
+            <h3>Átomos</h3>
+            <div class="element-grid" id="atomGrid">
+                <div class="draggable-element el-C" draggable="true" data-type="C" data-label="C">C</div>
+                <div class="draggable-element el-H" draggable="true" data-type="H" data-label="H">H</div>
+                <div class="draggable-element el-O" draggable="true" data-type="O" data-label="O">O</div>
+                <div class="draggable-element el-N" draggable="true" data-type="N" data-label="N">N</div>
+                <div class="draggable-element el-S" draggable="true" data-type="S" data-label="S">S</div>
+                <div class="draggable-element el-P" draggable="true" data-type="P" data-label="P">P</div>
+                <div class="draggable-element el-Cl" draggable="true" data-type="Cl" data-label="Cl">Cl</div>
+                <div class="draggable-element el-Br" draggable="true" data-type="Br" data-label="Br">Br</div>
+                <div class="draggable-element el-I" draggable="true" data-type="I" data-label="I">I</div>
+                <div class="draggable-element el-F" draggable="true" data-type="F" data-label="F">F</div>
+            </div>
+            <div class="section-label">──── Grupos ────</div>
+            <div class="element-grid" id="groupGrid">
+                <div class="draggable-element el-group" draggable="true" data-type="CH3" data-label="–CH₃">–CH₃</div>
+                <div class="draggable-element el-group" draggable="true" data-type="CH2" data-label="–CH₂–">–CH₂–</div>
+                <div class="draggable-element el-group" draggable="true" data-type="CH" data-label="–CH–">–CH–</div>
+                <div class="draggable-element el-group" draggable="true" data-type="OH" data-label="–OH">–OH</div>
+                <div class="draggable-element el-group" draggable="true" data-type="NH2" data-label="–NH₂">–NH₂</div>
+                <div class="draggable-element el-group" draggable="true" data-type="COOH" data-label="–COOH">–COOH</div>
+                <div class="draggable-element el-group" draggable="true" data-type="NO2" data-label="–NO₂">–NO₂</div>
+            </div>
+            <div class="section-label">──── Ciclos ────</div>
+            <div class="element-grid">
+                <div class="draggable-element el-benceno" draggable="true" data-type="BENCENO" data-label="Benceno" style="width:62px;height:48px;border-radius:4px;font-size:0.6rem;">⏣ Benceno</div>
+            </div>
+            <div class="section-label">── Biomoléculas ──</div>
+            <div class="element-grid">
+                <div class="draggable-element el-group" draggable="true" data-type="GLICINA" data-label="Glicina" style="width:58px;height:42px;border-radius:3px;font-size:0.55rem;">Gly (aa)</div>
+                <div class="draggable-element el-group" draggable="true" data-type="ALANINA" data-label="Alanina" style="width:58px;height:42px;border-radius:3px;font-size:0.55rem;">Ala (aa)</div>
+                <div class="draggable-element el-group" draggable="true" data-type="GLUCOSA" data-label="Glucosa" style="width:58px;height:42px;border-radius:3px;font-size:0.55rem;">Glucosa</div>
+                <div class="draggable-element el-group" draggable="true" data-type="ACIDO_GRASO" data-label="Ác. Graso" style="width:62px;height:42px;border-radius:3px;font-size:0.5rem;">Ác. Graso</div>
+            </div>
+        </aside>
+
+        <!-- ========== ÁREA CENTRAL ========== -->
+        <div class="center-area" id="centerArea">
+            <!-- Lienzo Canvas (modo calculadora) -->
+            <div class="canvas-wrapper" id="canvasWrapper">
+                <canvas id="molCanvas"></canvas>
+            </div>
+            <!-- Visor README (oculto por defecto) -->
+            <div class="readme-viewer" id="readmeViewer">
+                <!-- El contenido README se inyecta desde JS -->
+            </div>
+            <!-- Barra de notación -->
+            <div class="notation-bar" id="notationBar">
+                <label><i class="fa-solid fa-file-pen"></i> Notación:</label>
+                <input type="text" class="notation-input" id="notationInput"
+                placeholder="Ej: CH3 - CH2 - CH[<CH3] - CH2 - CH3"
+                title="Ingrese notación lineal compacta">
+                <button class="btn-parse" id="btnParse" title="Interpretar notación">▶ Parsear</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== TOAST DE ERROR ==================== -->
+    <div class="error-toast" id="errorToast"></div>
+
+    <script>
+        (function() {
+            // ============ CONSTANTES Y REFERENCIAS DOM ============
+            const canvas = document.getElementById('molCanvas');
+            const ctx = canvas.getContext('2d');
+            const canvasWrapper = document.getElementById('canvasWrapper');
+            const notationInput = document.getElementById('notationInput');
+            const btnParse = document.getElementById('btnParse');
+            const btnClear = document.getElementById('btnClearCanvas');
+            const btnCalcMode = document.getElementById('btnCalcMode');
+            const btnReadmeMode = document.getElementById('btnReadmeMode');
+            const readmeViewer = document.getElementById('readmeViewer');
+            const errorToast = document.getElementById('errorToast');
+            const notationBar = document.getElementById('notationBar');
+            const sidePanel = document.getElementById('sidePanel');
+
+            // ============ ESTADO DE LA APLICACIÓN ============
+            let atoms = []; // { id, type, x, y, label, color, valence }
+            let bonds = []; // { from: atomId, to: atomId, order: 1|2|3|4, stereo: null }
+            let atomIdCounter = 0;
+            let currentMode = 'calculator'; // 'calculator' | 'readme'
+            let dragOffsetX = 0;
+            let dragOffsetY = 0;
+            let draggedAtomId = null; // para arrastrar átomos existentes
+            let hoveredAtomId = null;
+            let errorTimer = null;
+
+            // Colores base por tipo de átomo (para el degradado 3D)
+            const atomColors = {
+                'C': '#404040',
+                'H': '#8B8B8B',
+                'O': '#C52828',
+                'N': '#1B5BA1',
+                'S': '#C4941A',
+                'P': '#C45A1A',
+                'Cl': '#2E8B2E',
+                'Br': '#6B2E2E',
+                'I': '#4B0082',
+                'F': '#6BAF6B',
+                'CH3': '#5C4A3A',
+                'CH2': '#5C4A3A',
+                'CH': '#5C4A3A',
+                'OH': '#7A3A3A',
+                'NH2': '#3A5A7A',
+                'COOH': '#6B4A3A',
+                'NO2': '#8B5A2A',
+                'BENCENO': '#3A3A5C',
+                'GLICINA': '#5A5A4A',
+                'ALANINA': '#5A5A4A',
+                'GLUCOSA': '#6B8B3A',
+                'ACIDO_GRASO': '#8B7A3A',
+            };
+
+            // Valencia típica (máxima de enlaces)
+            const atomValence = {
+                'C': 4,
+                'H': 1,
+                'O': 2,
+                'N': 3,
+                'S': 2,
+                'P': 5,
+                'Cl': 1,
+                'Br': 1,
+                'I': 1,
+                'F': 1,
+                'CH3': 1,
+                'CH2': 2,
+                'CH': 3,
+                'OH': 1,
+                'NH2': 1,
+                'COOH': 1,
+                'NO2': 1,
+                'BENCENO': 6,
+                'GLICINA': 2,
+                'ALANINA': 2,
+                'GLUCOSA': 4,
+                'ACIDO_GRASO': 1,
+            };
+
+            // Radio de los átomos en el canvas
+            const ATOM_RADIUS = 26;
+            const SNAP_DISTANCE = 40; // Distancia para detectar enlace al soltar
+
+            // ============ FUNCIONES DEL CANVAS ============
+            function resizeCanvas() {
+                const rect = canvasWrapper.getBoundingClientRect();
+                const dpr = window.devicePixelRatio || 1;
+                const w = rect.width;
+                const h = rect.height;
+                canvas.width = w * dpr;
+                canvas.height = h * dpr;
+                canvas.style.width = w + 'px';
+                canvas.style.height = h + 'px';
+                ctx.setTransform(1, 0, 0, 1, 0, 0);
+                ctx.scale(dpr, dpr);
+            }
+
+            function getCanvasPos(e) {
+                const rect = canvas.getBoundingClientRect();
+                return {
+                    x: e.clientX - rect.left,
+                    y: e.clientY - rect.top
+                };
+            }
+
+            function drawAtomShadow(x, y, r) {
+                ctx.save();
+                ctx.shadowColor = 'rgba(0,0,0,0.45)';
+                ctx.shadowBlur = 8;
+                ctx.shadowOffsetX = 3;
+                ctx.shadowOffsetY = 4;
+                ctx.fillStyle = '#555';
+                ctx.beginPath();
+                ctx.arc(x, y, r, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+
+            function draw3DAtom(x, y, r, baseColor) {
+                // Sombra proyectada
+                drawAtomShadow(x, y, r);
+                // Esfera con degradado radial
+                const grad = ctx.createRadialGradient(x - r * 0.25, y - r * 0.3, r * 0.08, x, y, r);
+                grad.addColorStop(0, lightenColor(baseColor, 70));
+                grad.addColorStop(0.35, lightenColor(baseColor, 25));
+                grad.addColorStop(0.7, baseColor);
+                grad.addColorStop(1, darkenColor(baseColor, 50));
+                ctx.fillStyle = grad;
+                ctx.beginPath();
+                ctx.arc(x, y, r, 0, Math.PI * 2);
+                ctx.fill();
+                // Borde
+                ctx.strokeStyle = 'rgba(0,0,0,0.55)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                // Brillo especular
+                const specGrad = ctx.createRadialGradient(x - r * 0.3, y - r * 0.35, r * 0.02, x - r * 0.15, y - r * 0.2,
+                    r * 0.5);
+                specGrad.addColorStop(0, 'rgba(255,255,255,0.7)');
+                specGrad.addColorStop(1, 'rgba(255,255,255,0)');
+                ctx.fillStyle = specGrad;
+                ctx.beginPath();
+                ctx.arc(x, y, r, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            function lightenColor(hex, percent) {
+                const num = parseInt(hex.replace('#', ''), 16);
+                const amt = Math.round(2.55 * percent);
+                const R = Math.min(255, (num >> 16) + amt);
+                const G = Math.min(255, ((num >> 8) & 0x00FF00) + amt);
+                const B = Math.min(255, (num & 0x0000FF) + amt);
+                return `rgb(${R},${G},${B})`;
+            }
+
+            function darkenColor(hex, percent) {
+                const num = parseInt(hex.replace('#', ''), 16);
+                const amt = Math.round(2.55 * percent);
+                const R = Math.max(0, (num >> 16) - amt);
+                const G = Math.max(0, ((num >> 8) & 0x00FF00) - amt);
+                const B = Math.max(0, (num & 0x0000FF) - amt);
+                return `rgb(${R},${G},${B})`;
+            }
+
+            function drawBond(x1, y1, x2, y2, order, stereo) {
+                const dx = x2 - x1;
+                const dy = y2 - y1;
+                const len = Math.sqrt(dx * dx + dy * dy);
+                if (len < 1) return;
+                const ux = dx / len;
+                const uy = dy / len;
+                const nx = -uy;
+                const ny = ux;
+                const sep = 6; // separación entre líneas de enlaces múltiples
+
+                ctx.strokeStyle = '#2E2E2E';
+                ctx.lineWidth = 2.5;
+                ctx.lineCap = 'round';
+
+                if (order === 1) {
+                    if (stereo === 'wedge-down') {
+                        // Cuña punteada (hacia abajo/atrás)
+                        ctx.setLineDash([3, 4]);
+                        ctx.strokeStyle = '#555';
+                    }
+                    ctx.beginPath();
+                    ctx.moveTo(x1, y1);
+                    ctx.lineTo(x2, y2);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                    ctx.strokeStyle = '#2E2E2E';
+                } else if (order === 2) {
+                    ctx.beginPath();
+                    ctx.moveTo(x1 + nx * sep / 2, y1 + ny * sep / 2);
+                    ctx.lineTo(x2 + nx * sep / 2, y2 + ny * sep / 2);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(x1 - nx * sep / 2, y1 - ny * sep / 2);
+                    ctx.lineTo(x2 - nx * sep / 2, y2 - ny * sep / 2);
+                    ctx.stroke();
+                } else if (order === 3) {
+                    ctx.beginPath();
+                    ctx.moveTo(x1, y1);
+                    ctx.lineTo(x2, y2);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(x1 + nx * sep, y1 + ny * sep);
+                    ctx.lineTo(x2 + nx * sep, y2 + ny * sep);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(x1 - nx * sep, y1 - ny * sep);
+                    ctx.lineTo(x2 - nx * sep, y2 - ny * sep);
+                    ctx.stroke();
+                } else if (order === 4) {
+                    ctx.beginPath();
+                    ctx.moveTo(x1 + nx * sep * 0.6, y1 + ny * sep * 0.6);
+                    ctx.lineTo(x2 + nx * sep * 0.6, y2 + ny * sep * 0.6);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(x1 - nx * sep * 0.6, y1 - ny * sep * 0.6);
+                    ctx.lineTo(x2 - nx * sep * 0.6, y2 - ny * sep * 0.6);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(x1 + nx * sep * 1.6, y1 + ny * sep * 1.6);
+                    ctx.lineTo(x2 + nx * sep * 1.6, y2 + ny * sep * 1.6);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(x1 - nx * sep * 1.6, y1 - ny * sep * 1.6);
+                    ctx.lineTo(x2 - nx * sep * 1.6, y2 - ny * sep * 1.6);
+                    ctx.stroke();
+                }
+            }
+
+            function renderCanvas() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                // Dibujar enlaces
+                bonds.forEach(bond => {
+                    const a1 = atoms.find(a => a.id === bond.from);
+                    const a2 = atoms.find(a => a.id === bond.to);
+                    if (a1 && a2) {
+                        drawBond(a1.x, a1.y, a2.x, a2.y, bond.order, bond.stereo);
+                    }
+                });
+                // Dibujar átomos
+                atoms.forEach(atom => {
+                    const color = atomColors[atom.type] || '#555';
+                    draw3DAtom(atom.x, atom.y, ATOM_RADIUS, color);
+                    // Etiqueta
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.font = 'bold 13px "Courier New", monospace';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.shadowColor = 'rgba(0,0,0,0.7)';
+                    ctx.shadowBlur = 2;
+                    ctx.shadowOffsetX = 1;
+                    ctx.shadowOffsetY = 1;
+                    ctx.fillText(atom.label, atom.x, atom.y);
+                    ctx.shadowColor = 'transparent';
+                    ctx.shadowBlur = 0;
+                    ctx.shadowOffsetX = 0;
+                    ctx.shadowOffsetY = 0;
+                    // Indicador de hover
+                    if (atom.id === hoveredAtomId) {
+                        ctx.strokeStyle = '#486648';
+                        ctx.lineWidth = 3;
+                        ctx.setLineDash([4, 2]);
+                        ctx.beginPath();
+                        ctx.arc(atom.x, atom.y, ATOM_RADIUS + 5, 0, Math.PI * 2);
+                        ctx.stroke();
+                        ctx.setLineDash([]);
+                        ctx.lineWidth = 2;
+                    }
+                });
+            }
+
+            // ============ GESTIÓN DE ÁTOMOS Y ENLACES ============
+            function addAtom(type, x, y) {
+                const id = ++atomIdCounter;
+                const label = type.length <= 2 ? type : (type === 'BENCENO' ? 'Bz' : type.substring(0, 3));
+                const atom = {
+                    id,
+                    type,
+                    x,
+                    y,
+                    label,
+                    color: atomColors[type] || '#555',
+                    valence: atomValence[type] || 4,
+                };
+                atoms.push(atom);
+                return atom;
+            }
+
+            function addBond(fromId, toId, order = 1, stereo = null) {
+                // Evitar duplicados
+                const exists = bonds.some(b =>
+                    (b.from === fromId && b.to === toId) || (b.from === toId && b.to === fromId)
+                );
+                if (exists) return null;
+                // Verificar valencias
+                const a1 = atoms.find(a => a.id === fromId);
+                const a2 = atoms.find(a => a.id === toId);
+                if (!a1 || !a2) return null;
+                const currentBonds1 = bonds.filter(b => b.from === fromId || b.to === fromId).reduce((sum, b) => sum + b
+                    .order, 0);
+                const currentBonds2 = bonds.filter(b => b.from === toId || b.to === toId).reduce((sum, b) => sum + b.order,
+                    0);
+                if (currentBonds1 + order > a1.valence) {
+                    showError(`Valencia excedida para ${a1.label} (máx: ${a1.valence}, actual: ${currentBonds1})`);
+                    return null;
+                }
+                if (currentBonds2 + order > a2.valence) {
+                    showError(`Valencia excedida para ${a2.label} (máx: ${a2.valence}, actual: ${currentBonds2})`);
+                    return null;
+                }
+                const bond = { from: fromId, to: toId, order, stereo };
+                bonds.push(bond);
+                return bond;
+            }
+
+            function findAtomAt(x, y, maxDist = ATOM_RADIUS + 8) {
+                let closest = null;
+                let closestDist = maxDist;
+                for (const atom of atoms) {
+                    const dist = Math.hypot(atom.x - x, atom.y - y);
+                    if (dist < closestDist) {
+                        closestDist = dist;
+                        closest = atom;
+                    }
+                }
+                return closest;
+            }
+
+            function removeAtom(atomId) {
+                atoms = atoms.filter(a => a.id !== atomId);
+                bonds = bonds.filter(b => b.from !== atomId && b.to !== atomId);
+            }
+
+            function clearAll() {
+                atoms = [];
+                bonds = [];
+                atomIdCounter = 0;
+                hoveredAtomId = null;
+                draggedAtomId = null;
+                notationInput.value = '';
+                renderCanvas();
+                hideError();
+            }
+
+            // ============ SERIALIZACIÓN A NOTACIÓN ============
+            function generateNotation() {
+                if (atoms.length === 0) return '';
+                // Algoritmo simplificado: recorre la cadena más larga
+                if (atoms.length === 1) return atoms[0].label;
+                // Encontrar átomos terminales (con 1 enlace)
+                const bondCount = {};
+                atoms.forEach(a => { bondCount[a.id] = 0; });
+                bonds.forEach(b => {
+                    bondCount[b.from] = (bondCount[b.from] || 0) + 1;
+                    bondCount[b.to] = (bondCount[b.to] || 0) + 1;
+                });
+                // Si hay pocos átomos, generar notación simple
+                const parts = [];
+                const visited = new Set();
+                // BFS simple para construir una representación
+                if (atoms.length <= 10) {
+                    // Notación simplificada: listar átomos y enlaces
+                    const atomLabels = atoms.map(a => a.label).join(' - ');
+                    return atomLabels;
+                }
+                return atoms.map(a => a.label).join(' - ');
+            }
+
+            function updateNotationInput() {
+                notationInput.value = generateNotation();
+            }
+
+            // ============ PARSER DE NOTACIÓN LINEAL ============
+            function parseNotation(text) {
+                if (!text || text.trim() === '') {
+                    showError('La notación está vacía.');
+                    return false;
+                }
+                // Limpiar el texto
+                const cleaned = text.replace(/\s+/g, ' ').trim();
+                // Dividir por guiones (enlaces simples) y otros delimitadores
+                // Parser simplificado: dividir por ' - ' y procesar cada fragmento
+                const fragments = cleaned.split(/s*[-=]+\s*/).filter(f => f.length > 0);
+                if (fragments.length === 0) {
+                    showError('No se reconocieron fragmentos moleculares.');
+                    return false;
+                }
+                // Limpiar estado actual
+                atoms = [];
+                bonds = [];
+                atomIdCounter = 0;
+                hoveredAtomId = null;
+                draggedAtomId = null;
+
+                // Procesar fragmentos y crear átomos en línea
+                const createdAtoms = [];
+                let xPos = 100;
+                const yPos = canvasWrapper.clientHeight / 2 || 250;
+                const spacing = 70;
+
+                for (const frag of fragments) {
+                    // Detectar tipo de átomo/grupo
+                    let atomType = frag.trim();
+                    let cleanType = atomType.replace(/[\[\]<>()0-9]/g, '').trim();
+                    // Mapear nombres comunes
+                    const typeMap = {
+                        'CH3': 'CH3',
+                        'CH2': 'CH2',
+                        'CH': 'CH',
+                        'OH': 'OH',
+                        'NH2': 'NH2',
+                        'COOH': 'COOH',
+                        'NO2': 'NO2',
+                        'C': 'C',
+                        'H': 'H',
+                        'O': 'O',
+                        'N': 'N',
+                        'S': 'S',
+                        'P': 'P',
+                        'Cl': 'Cl',
+                        'Br': 'Br',
+                        'I': 'I',
+                        'F': 'F',
+                        'BENCENO': 'BENCENO',
+                        'AnilloBenceno': 'BENCENO',
+                    };
+                    let resolvedType = typeMap[cleanType] || cleanType;
+                    if (resolvedType.length > 10) resolvedType = 'C'; // fallback
+
+                    const atom = addAtom(resolvedType, xPos, yPos);
+                    createdAtoms.push(atom);
+                    xPos += spacing;
+                }
+
+                // Crear enlaces simples entre átomos consecutivos
+                for (let i = 0; i < createdAtoms.length - 1; i++) {
+                    addBond(createdAtoms[i].id, createdAtoms[i + 1].id, 1);
+                }
+
+                // Procesar ramificaciones con corchetes [ ]
+                const bracketMatch = cleaned.match(/\[([^\]]+)\]/g);
+                if (bracketMatch && createdAtoms.length >= 3) {
+                    // Simplificado: si hay [algo], añadir como rama al tercer átomo (índice 2)
+                    const branchContent = bracketMatch[0].replace(/[\[\]]/g, '').replace(/[<>]/g, '').trim();
+                    const branchTypeMap = {
+                        'CH3': 'CH3',
+                        'CH2': 'CH2',
+                        'CH': 'CH',
+                        'OH': 'OH',
+                        'NH2': 'NH2',
+                        'C': 'C',
+                        'O': 'O',
+                        'N': 'N',
+                    };
+                    const branchType = branchTypeMap[branchContent] || 'CH3';
+                    if (createdAtoms.length >= 3) {
+                        const targetAtom = createdAtoms[Math.min(2, createdAtoms.length - 1)];
+                        const branchAtom = addAtom(branchType, targetAtom.x + 50, targetAtom.y - 55);
+                        addBond(targetAtom.id, branchAtom.id, 1);
+                    }
+                }
+
+                updateNotationInput();
+                renderCanvas();
+                hideError();
+                return true;
+            }
+
+            // ============ SISTEMA DE ERRORES ============
+            function showError(message) {
+                const toast = errorToast;
+                toast.textContent = '⚠ ' + message;
+                toast.classList.add('visible');
+                if (errorTimer) clearTimeout(errorTimer);
+                errorTimer = setTimeout(() => {
+                    toast.classList.remove('visible');
+                }, 5000);
+            }
+
+            function hideError() {
+                errorToast.classList.remove('visible');
+                if (errorTimer) clearTimeout(errorTimer);
+            }
+
+            errorToast.addEventListener('click', () => {
+                hideError();
+            });
+
+            // ============ EVENTOS DEL CANVAS ============
+            canvas.addEventListener('mousedown', (e) => {
+                if (currentMode !== 'calculator') return;
+                const pos = getCanvasPos(e);
+                const atom = findAtomAt(pos.x, pos.y);
+                if (atom) {
+                    // Iniciar arrastre de átomo existente
+                    draggedAtomId = atom.id;
+                    dragOffsetX = atom.x - pos.x;
+                    dragOffsetY = atom.y - pos.y;
+                    canvas.style.cursor = 'grabbing';
+                }
+            });
+
+            canvas.addEventListener('mousemove', (e) => {
+                if (currentMode !== 'calculator') return;
+                const pos = getCanvasPos(e);
+                if (draggedAtomId !== null) {
+                    const atom = atoms.find(a => a.id === draggedAtomId);
+                    if (atom) {
+                        atom.x = pos.x + dragOffsetX;
+                        atom.y = pos.y + dragOffsetY;
+                        // Mantener dentro del canvas
+                        const rect = canvasWrapper.getBoundingClientRect();
+                        atom.x = Math.max(ATOM_RADIUS, Math.min(rect.width - ATOM_RADIUS, atom.x));
+                        atom.y = Math.max(ATOM_RADIUS, Math.min(rect.height - ATOM_RADIUS, atom.y));
+                        renderCanvas();
+                        updateNotationInput();
+                    }
+                } else {
+                    // Hover
+                    const atom = findAtomAt(pos.x, pos.y);
+                    const newHoverId = atom ? atom.id : null;
+                    if (newHoverId !== hoveredAtomId) {
+                        hoveredAtomId = newHoverId;
+                        canvas.style.cursor = hoveredAtomId ? 'grab' : 'crosshair';
+                        renderCanvas();
+                    }
+                }
+            });
+
+            canvas.addEventListener('mouseup', (e) => {
+                if (currentMode !== 'calculator') return;
+                if (draggedAtomId !== null) {
+                    canvas.style.cursor = hoveredAtomId ? 'grab' : 'crosshair';
+                    draggedAtomId = null;
+                    updateNotationInput();
+                    renderCanvas();
+                }
+            });
+
+            canvas.addEventListener('mouseleave', () => {
+                if (draggedAtomId !== null) {
+                    draggedAtomId = null;
+                    canvas.style.cursor = 'crosshair';
+                    renderCanvas();
+                }
+                hoveredAtomId = null;
+                renderCanvas();
+            });
+
+            // Doble clic para eliminar átomo
+            canvas.addEventListener('dblclick', (e) => {
+                if (currentMode !== 'calculator') return;
+                const pos = getCanvasPos(e);
+                const atom = findAtomAt(pos.x, pos.y);
+                if (atom) {
+                    removeAtom(atom.id);
+                    updateNotationInput();
+                    renderCanvas();
+                    hideError();
+                }
+            });
+
+            // Click simple para crear enlace entre átomos (modo conexión)
+            let connectMode = false;
+            let connectFromId = null;
+
+            canvas.addEventListener('click', (e) => {
+                if (currentMode !== 'calculator') return;
+                if (draggedAtomId !== null) return; // estaba arrastrando
+                const pos = getCanvasPos(e);
+                const atom = findAtomAt(pos.x, pos.y);
+                if (atom && e.shiftKey) {
+                    // Shift+click: modo conexión
+                    if (!connectMode) {
+                        connectMode = true;
+                        connectFromId = atom.id;
+                        showError('Modo conexión: haz clic en otro átomo para enlazar (Shift para cancelar)');
+                    } else {
+                        if (atom.id !== connectFromId) {
+                            addBond(connectFromId, atom.id, 1);
+                            updateNotationInput();
+                            renderCanvas();
+                        }
+                        connectMode = false;
+                        connectFromId = null;
+                        hideError();
+                    }
+                } else if (connectMode && !e.shiftKey) {
+                    connectMode = false;
+                    connectFromId = null;
+                    hideError();
+                }
+            });
+
+            // ============ DRAG & DROP DESDE EL PANEL ============
+            document.querySelectorAll('.draggable-element').forEach(el => {
+                el.addEventListener('dragstart', (e) => {
+                    if (currentMode !== 'calculator') {
+                        e.preventDefault();
+                        return;
+                    }
+                    const type = el.getAttribute('data-type');
+                    const label = el.getAttribute('data-label');
+                    e.dataTransfer.setData('text/plain', JSON.stringify({ type, label }));
+                    e.dataTransfer.effectAllowed = 'copy';
+                    el.style.opacity = '0.6';
+                });
+                el.addEventListener('dragend', (e) => {
+                    el.style.opacity = '1';
+                });
+            });
+
+            canvasWrapper.addEventListener('dragover', (e) => {
+                if (currentMode !== 'calculator') return;
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'copy';
+            });
+
+            canvasWrapper.addEventListener('drop', (e) => {
+                if (currentMode !== 'calculator') return;
+                e.preventDefault();
+                const dataStr = e.dataTransfer.getData('text/plain');
+                if (!dataStr) return;
+                let data;
+                try {
+                    data = JSON.parse(dataStr);
+                } catch (err) {
+                    return;
+                }
+                const pos = getCanvasPos(e);
+                // Verificar si se soltó cerca de un átomo existente
+                const nearbyAtom = findAtomAt(pos.x, pos.y, SNAP_DISTANCE);
+                const newAtom = addAtom(data.type, pos.x, pos.y);
+                if (nearbyAtom) {
+                    addBond(nearbyAtom.id, newAtom.id, 1);
+                }
+                updateNotationInput();
+                renderCanvas();
+                hideError();
+            });
+
+            // ============ BOTONES ============
+            btnParse.addEventListener('click', () => {
+                if (currentMode !== 'calculator') return;
+                const text = notationInput.value;
+                parseNotation(text);
+            });
+
+            notationInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (currentMode === 'calculator') {
+                        parseNotation(notationInput.value);
+                    }
+                }
+            });
+
+            btnClear.addEventListener('click', () => {
+                clearAll();
+                renderCanvas();
+            });
+
+            // ============ CAMBIO DE MODO ============
+            function setMode(mode) {
+                currentMode = mode;
+                if (mode === 'calculator') {
+                    btnCalcMode.classList.add('active');
+                    btnReadmeMode.classList.remove('active');
+                    canvasWrapper.style.display = 'block';
+                    readmeViewer.classList.remove('active');
+                    notationBar.style.display = 'flex';
+                    sidePanel.style.display = 'flex';
+                    resizeCanvas();
+                    renderCanvas();
+                } else {
+                    btnCalcMode.classList.remove('active');
+                    btnReadmeMode.classList.add('active');
+                    canvasWrapper.style.display = 'none';
+                    readmeViewer.classList.add('active');
+                    notationBar.style.display = 'none';
+                    sidePanel.style.display = 'none';
+                    hideError();
+                }
+            }
+
+            btnCalcMode.addEventListener('click', () => setMode('calculator'));
+            btnReadmeMode.addEventListener('click', () => setMode('readme'));
+
+            // ============ CONTENIDO README ============
+            function populateReadme() {
+                readmeViewer.innerHTML = `
+                    <h1><i class="fa-solid fa-file-lines"></i> Calculadora de Química Orgánica</h1>
+                    <p><strong>Versión 1.0.0</strong> — Representación molecular interactiva con notación lineal compacta y simulación 3D aparente.</p>
+                    <hr>
+                    <h2>Descripción General</h2>
+                    <p>Herramienta web interactiva que permite construir moléculas orgánicas mediante una interfaz dual: un editor gráfico con arrastre de átomos y grupos funcionales, y un intérprete de notación textual compacta. Cada átomo se representa como un círculo con sombreado que simula profundidad tridimensional (efecto <em>faux-3D</em>).</p>
+                    <h2>Características Principales</h2>
+                    <ul>
+                        <li><strong>Construcción visual por arrastre:</strong> arrastra elementos desde el panel lateral al lienzo.</li>
+                        <li><strong>Elementos individuales y grupos predefinidos:</strong> átomos, grupos alquilo, benceno, aminoácidos, carbohidratos y ácidos grasos.</li>
+                        <li><strong>Notación textual compacta:</strong> escribe en el campo de notación y presiona <em>Parsear</em> o <em>Enter</em>.</li>
+                        <li><strong>Dos modos:</strong> Calculadora Gráfica y visor README (este documento).</li>
+                        <li><strong>Validación y alertas:</strong> errores de sintaxis o valencia se notifican sin interrumpir el flujo.</li>
+                    </ul>
+                    <h2>Formato de Representación Molecular</h2>
+                    <table>
+                        <tr><th>Símbolo</th><th>Significado</th></tr>
+                        <tr><td><code>-</code></td><td>Enlace simple</td></tr>
+                        <tr><td><code>=</code></td><td>Enlace doble</td></tr>
+                        <tr><td><code>=-</code></td><td>Enlace triple</td></tr>
+                        <tr><td><code>==</code></td><td>Enlace cuádruple</td></tr>
+                        <tr><td><code>[grupo]</code></td><td>Grupo proyectado hacia abajo (cuña punteada)</td></tr>
+                        <tr><td><code>(grupo)n</code></td><td>Multiplicador: repite el grupo <em>n</em> veces</td></tr>
+                        <tr><td><code>&lt;&gt;</code> dentro de <code>[]</code></td><td>Dirección dual en ramificaciones</td></tr>
+                    </table>
+                    <h3>Ejemplos</h3>
+                    <pre>CH3 - CH2 - CH[&lt;CH3] - CH2 - CH3   → 3-metilpentano</pre>
+                    <pre>CH3 - C[&lt;&gt;(CH3)2] = CH2           → 2,2-dimetilpropeno</pre>
+                    <pre>AnilloBenceno - NO2                → Nitrobenceno</pre>
+                    <h2>Manejo de Errores</h2>
+                    <p>Notificación en esquina inferior izquierda con fondo beige y borde verde. Desaparece tras 5 segundos o al hacer clic.</p>
+                    <h2>Atajos</h2>
+                    <ul>
+                        <li><strong>Shift + clic</strong> en dos átomos: crear enlace entre ellos.</li>
+                        <li><strong>Doble clic</strong> en un átomo: eliminarlo.</li>
+                        <li><strong>Arrastrar</strong> átomos para reorganizar.</li>
+                    </ul>
+                    <h2>Créditos</h2>
+                    <p>Desarrollado por WM – 2026. Licencia Libre sin restricción.</p>
+                    <hr>
+                    <p><em>Este documento es parte integral del proyecto y puede visualizarse desde la pestaña "README".</em></p>
+                `;
+            }
+            populateReadme();
+
+            // ============ INICIALIZACIÓN ============
+            function init() {
+                resizeCanvas();
+                renderCanvas();
+                setMode('calculator');
+                // Átomos de ejemplo
+                const a1 = addAtom('C', 200, 300);
+                const a2 = addAtom('C', 280, 280);
+                const a3 = addAtom('C', 360, 300);
+                const a4 = addAtom('C', 440, 320);
+                const a5 = addAtom('C', 520, 300);
+                addBond(a1.id, a2.id, 1);
+                addBond(a2.id, a3.id, 1);
+                addBond(a3.id, a4.id, 1);
+                addBond(a4.id, a5.id, 1);
+                const branch = addAtom('CH3', 360, 220);
+                addBond(a3.id, branch.id, 1);
+                updateNotationInput();
+                renderCanvas();
+            }
+
+            window.addEventListener('resize', () => {
+                resizeCanvas();
+                renderCanvas();
+            });
+
+            // ============ TECLADO ============
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    connectMode = false;
+                    connectFromId = null;
+                    hideError();
+                    draggedAtomId = null;
+                    canvas.style.cursor = 'crosshair';
+                    renderCanvas();
+                }
+                if (e.key === 'Delete' && currentMode === 'calculator' && hoveredAtomId !== null) {
+                    removeAtom(hoveredAtomId);
+                    hoveredAtomId = null;
+                    updateNotationInput();
+                    renderCanvas();
+                }
+            });
+
+            init();
+            console.log('🧪 Calculadora de Química Orgánica v1.0.0 — Lista');
+            console.log('  - Arrastra elementos desde el panel lateral');
+            console.log('  - Shift+clic para enlazar átomos');
+            console.log('  - Doble clic para eliminar');
+            console.log('  - Escribe notación y presiona Enter');
+            console.log('  - Cambia a modo README para ver la documentación');
+        })();
+    </script>
+</body>
+</html>
