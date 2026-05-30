@@ -304,14 +304,17 @@
             padding: 12px;
             overflow-y: auto;
             background: #FDFCF9;
+            min-height: 0;
         }
         .reaction-section {
             border: 3px solid var(--border);
             background: #FFFFFF;
             position: relative;
-            min-height: 200px;
+            min-height: 280px;
+            max-height: 500px;
             display: flex;
             flex-direction: column;
+            flex-shrink: 0;
         }
         .section-header {
             display: flex;
@@ -334,6 +337,29 @@
         .section-controls {
             display: flex;
             gap: 8px;
+            align-items: center;
+        }
+        .minimize-btn {
+            padding: 4px 8px;
+            cursor: pointer;
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            font-weight: 700;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            color: #FFFFFF;
+            transition: all 0.1s ease;
+        }
+        .minimize-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        .reaction-section.minimized .canvas-wrapper,
+        .reaction-section.minimized .iupac-display {
+            display: none;
+        }
+        .reaction-section.minimized {
+            min-height: auto;
+            height: auto;
         }
         .zoom-btn {
             padding: 4px 8px;
@@ -420,15 +446,19 @@
             font-family: var(--font-mono);
             font-size: 0.85rem;
             border: 2px solid var(--border);
-            background: #FDFCF9;
-            color: var(--text);
+            background: #FFFFFF;
+            color: #000000;
             letter-spacing: 0.3px;
             outline: none;
             transition: border-color 0.15s ease;
+            min-width: 200px;
         }
         .notation-input:focus {
             border-color: var(--accent);
             background: #FFFEF9;
+        }
+        .notation-input::placeholder {
+            color: #888888;
         }
         .btn-parse {
             padding: 8px 16px;
@@ -607,7 +637,7 @@
     <!-- ==================== BARRA SUPERIOR ==================== -->
     <header class="top-bar">
         <div class="logo">
-            <i class="fa-solid fa-flask"></i> <span>ORGANI</span>CULADORA <span style="font-size:0.7rem;">v2.0.0</span>
+            <i class="fa-solid fa-flask"></i> <span>ORGANI</span>CULADORA <span style="font-size:0.7rem;">v2.1.0</span>
         </div>
         <div class="mode-switch">
             <button class="mode-btn active" id="btnCalcMode" title="Modo Calculadora Gráfica">
@@ -615,6 +645,9 @@
             </button>
             <button class="mode-btn" id="btnReadmeMode" title="Ver documentación">
                 <i class="fa-solid fa-file-lines"></i> README
+            </button>
+            <button class="mode-btn" id="btnChangelogMode" title="Ver historial de cambios">
+                <i class="fa-solid fa-clock-rotate-left"></i> Changelog
             </button>
         </div>
         <div class="top-actions">
@@ -699,6 +732,7 @@
                             <i class="fa-solid fa-flask"></i> Reactivo 1
                         </div>
                         <div class="section-controls">
+                            <button class="minimize-btn" onclick="toggleMinimize('reactant1')">_</button>
                             <button class="zoom-btn" onclick="zoomSection('reactant1', 0.1)">+</button>
                             <button class="zoom-btn" onclick="zoomSection('reactant1', -0.1)">-</button>
                             <span class="section-zoom-level" id="zoom-reactant1">100%</span>
@@ -720,6 +754,7 @@
                             <i class="fa-solid fa-flask"></i> Reactivo 2
                         </div>
                         <div class="section-controls">
+                            <button class="minimize-btn" onclick="toggleMinimize('reactant2')">_</button>
                             <button class="zoom-btn" onclick="zoomSection('reactant2', 0.1)">+</button>
                             <button class="zoom-btn" onclick="zoomSection('reactant2', -0.1)">-</button>
                             <span class="section-zoom-level" id="zoom-reactant2">100%</span>
@@ -741,6 +776,7 @@
                             <i class="fa-solid fa-fire"></i> Condiciones
                         </div>
                         <div class="section-controls">
+                            <button class="minimize-btn" onclick="toggleMinimize('conditions')">_</button>
                             <button class="zoom-btn" onclick="zoomSection('conditions', 0.1)">+</button>
                             <button class="zoom-btn" onclick="zoomSection('conditions', -0.1)">-</button>
                             <span class="section-zoom-level" id="zoom-conditions">100%</span>
@@ -762,6 +798,7 @@
                             <i class="fa-solid fa-check-circle"></i> Producto
                         </div>
                         <div class="section-controls">
+                            <button class="minimize-btn" onclick="toggleMinimize('product')">_</button>
                             <button class="zoom-btn" onclick="zoomSection('product', 0.1)">+</button>
                             <button class="zoom-btn" onclick="zoomSection('product', -0.1)">-</button>
                             <span class="section-zoom-level" id="zoom-product">100%</span>
@@ -779,6 +816,10 @@
             <!-- Visor README (oculto por defecto) -->
             <div class="readme-viewer" id="readmeViewer">
                 <!-- El contenido README se inyecta desde JS -->
+            </div>
+            <!-- Visor Changelog (oculto por defecto) -->
+            <div class="readme-viewer" id="changelogViewer">
+                <!-- El contenido Changelog se inyecta desde JS -->
             </div>
             <!-- Barra de notación -->
             <div class="notation-bar" id="notationBar">
@@ -821,7 +862,9 @@
             const btnClear = document.getElementById('btnClearCanvas');
             const btnCalcMode = document.getElementById('btnCalcMode');
             const btnReadmeMode = document.getElementById('btnReadmeMode');
+            const btnChangelogMode = document.getElementById('btnChangelogMode');
             const readmeViewer = document.getElementById('readmeViewer');
+            const changelogViewer = document.getElementById('changelogViewer');
             const errorToast = document.getElementById('errorToast');
             const notationBar = document.getElementById('notationBar');
             const sidePanel = document.getElementById('sidePanel');
@@ -829,7 +872,7 @@
 
             // ============ ESTADO DE LA APLICACIÓN ============
             let atomIdCounter = 0;
-            let currentMode = 'calculator'; // 'calculator' | 'readme'
+            let currentMode = 'calculator'; // 'calculator' | 'readme' | 'changelog'
             let activeSection = 'reactant1'; // Sección activa para arrastrar elementos
             let dragOffsetX = 0;
             let dragOffsetY = 0;
@@ -964,9 +1007,10 @@
 
             function getCanvasPos(e, section) {
                 const rect = canvasWrappers[section].getBoundingClientRect();
+                const zoom = zoomLevels[section];
                 return {
-                    x: e.clientX - rect.left,
-                    y: e.clientY - rect.top
+                    x: (e.clientX - rect.left) / zoom,
+                    y: (e.clientY - rect.top) / zoom
                 };
             }
 
@@ -1357,27 +1401,315 @@
                 const atoms = atomsData[section];
                 if (atoms.length === 0) return '-';
                 
-                // Generación simplificada de nombres IUPAC
+                // Generación mejorada de nombres IUPAC usando grupos completos
                 const atomTypes = atoms.map(a => a.type).join('-');
-                const commonNames = {
-                    'CH3-CH2-CH2-CH3': 'Butano',
-                    'CH3-CH2-CH3': 'Propano',
+                
+                // Nombres comunes exactos (mapeo directo)
+                const exactNames = {
+                    // Alcanos
                     'CH3-CH3': 'Etano',
+                    'CH3-CH2-CH3': 'Propano',
+                    'CH3-CH2-CH2-CH3': 'Butano',
                     'CH3-CH2-CH2-CH2-CH3': 'Pentano',
-                    'CH3-CH2-OH': 'Etanol',
-                    'CH3-COOH': 'Ácido acético',
                     'CH3-CH2-CH2-CH2-CH2-CH3': 'Hexano',
+                    'CH3-CH2-CH2-CH2-CH2-CH2-CH3': 'Heptano',
+                    'CH3-CH2-CH2-CH2-CH2-CH2-CH2-CH3': 'Octano',
+                    'CH3-CH2-CH2-CH2-CH2-CH2-CH2-CH2-CH3': 'Nonano',
+                    'CH3-CH2-CH2-CH2-CH2-CH2-CH2-CH2-CH2-CH3': 'Decano',
+                    'CH3-CH2-CH2-CH2': 'Butano',
+                    'CH3-CH2-CH2': 'Propano',
+                    'CH3-CH2': 'Etano',
+                    'CH3': 'Metano',
+                    // Alquenos
+                    'CH2=CH2': 'Eteno',
+                    'CH3-CH=CH2': 'Propeno',
+                    'CH3-CH2-CH=CH2': '1-Buteno',
+                    'CH3-CH=CH-CH3': '2-Buteno',
+                    'CH2=CH-CH=CH2': '1,3-Butadieno',
+                    // Alquinos
+                    'CH=CH': 'Etino',
+                    'CH3-C=CH': 'Propino',
+                    'CH3-CH2-C=CH': '1-Butino',
+                    // Alcoholes
+                    'CH3-OH': 'Metanol',
+                    'CH3-CH2-OH': 'Etanol',
+                    'CH3-CH2-CH2-OH': '1-Propanol',
+                    'CH3-CH(OH)-CH3': '2-Propanol',
+                    'CH3-CH2-CH2-CH2-OH': '1-Butanol',
+                    'CH3-CH2-CH(OH)-CH3': '2-Butanol',
+                    'CH3-CH(OH)-CH2-CH3': '2-Butanol',
+                    'CH3-CH2-CH2-CH2-CH2-OH': '1-Pentanol',
+                    // Ácidos carboxílicos
+                    'H-COOH': 'Ácido metanoico (Fórmico)',
+                    'CH3-COOH': 'Ácido etanoico (Acético)',
+                    'CH3-CH2-COOH': 'Ácido propanoico',
+                    'CH3-CH2-CH2-COOH': 'Ácido butanoico',
+                    'CH3-CH2-CH2-CH2-COOH': 'Ácido pentanoico (Valérico)',
+                    // Aldehídos
+                    'H-CHO': 'Metanal (Formaldehído)',
+                    'CH3-CHO': 'Etanal (Acetaldehído)',
+                    'CH3-CH2-CHO': 'Propanal',
+                    'CH3-CH2-CH2-CHO': 'Butanal',
+                    // Cetonas
+                    'CH3-CO-CH3': 'Propanona (Acetona)',
+                    'CH3-CO-CH2-CH3': 'Butanona',
+                    'CH3-CH2-CO-CH2-CH3': 'Pentanona',
+                    // Ésteres
+                    'CH3-COO-CH3': 'Acetato de metilo',
+                    'CH3-COO-CH2-CH3': 'Acetato de etilo',
+                    'CH3-CH2-COO-CH3': 'Propionato de metilo',
+                    // Éteres
+                    'CH3-O-CH3': 'Dimetil éter',
+                    'CH3-O-CH2-CH3': 'Etil metil éter',
+                    'CH3-CH2-O-CH2-CH3': 'Dietil éter',
+                    // Aminas
+                    'CH3-NH2': 'Metanamina (Metilamina)',
+                    'CH3-CH2-NH2': 'Etanamina (Etilamina)',
+                    'CH3-CH2-CH2-NH2': '1-Propanamina (Propilamina)',
+                    'CH3-NH-CH3': 'Dimetilamina',
+                    'CH3-CH2-NH-CH3': 'Metiletilamina',
+                    'CH3-CH2-NH-CH2-CH3': 'Dietilamina',
+                    // Haluros
+                    'CH3-Cl': 'Clorometano',
+                    'CH3-Br': 'Bromometano',
+                    'CH3-I': 'Yodometano',
+                    'CH3-CH2-Cl': 'Cloroetano',
+                    'CH3-CH2-Br': 'Bromoetano',
+                    // Aromáticos
+                    'C6H6': 'Benceno',
+                    'C6H5-CH3': 'Tolueno',
+                    'C6H5-OH': 'Fenol',
+                    'C6H5-NH2': 'Anilina',
+                    'C6H5-COOH': 'Ácido benzoico',
+                    'C6H5-CHO': 'Benzaldehído',
+                    // Otros
+                    'CH3-CO-CH3': 'Acetona',
+                    'CH3-COOH': 'Ácido acético',
+                    'CH3-CH2-OH': 'Etanol',
+                    'CH3-OH': 'Metanol',
+                    'NH3': 'Amoníaco',
+                    'H2O': 'Agua',
+                    'H2': 'Hidrógeno',
+                    'O2': 'Oxígeno',
+                    'N2': 'Nitrógeno',
+                    'CO2': 'Dióxido de carbono',
+                    'CO': 'Monóxido de carbono',
+                    'H2O2': 'Peróxido de hidrógeno',
+                    'H2SO4': 'Ácido sulfúrico',
+                    'HCl': 'Ácido clorhídrico',
+                    'HNO3': 'Ácido nítrico',
+                    'NaOH': 'Hidróxido de sodio',
+                    'KOH': 'Hidróxido de potasio',
+                    'NaCl': 'Cloruro de sodio',
+                    'KCl': 'Cloruro de potasio',
+                    'CaCO3': 'Carbonato de calcio',
                 };
                 
-                if (commonNames[atomTypes]) {
-                    return commonNames[atomTypes];
+                if (exactNames[atomTypes]) {
+                    return exactNames[atomTypes];
                 }
                 
+                // Detectar grupos funcionales
+                const hasOH = atoms.some(a => a.type === 'OH');
+                const hasCOOH = atoms.some(a => a.type === 'COOH');
+                const hasCHO = atoms.some(a => a.type === 'CHO');
+                const hasNH2 = atoms.some(a => a.type === 'NH2');
+                const hasSH = atoms.some(a => a.type === 'SH');
+                const hasNO2 = atoms.some(a => a.type === 'NO2');
+                const hasCN = atoms.some(a => a.type === 'CN');
+                const hasSO3H = atoms.some(a => a.type === 'SO3H');
+                const hasPO4 = atoms.some(a => a.type === 'PO4');
+                const hasBenceno = atoms.some(a => a.type === 'BENCENO');
+                const hasCl = atoms.some(a => a.type === 'Cl');
+                const hasBr = atoms.some(a => a.type === 'Br');
+                const hasI = atoms.some(a => a.type === 'I');
+                const hasF = atoms.some(a => a.type === 'F');
+                const hasNa = atoms.some(a => a.type === 'Na');
+                const hasK = atoms.some(a => a.type === 'K');
+                const hasCa = atoms.some(a => a.type === 'Ca');
+                const hasMg = atoms.some(a => a.type === 'Mg');
+                const hasFe = atoms.some(a => a.type === 'Fe');
+                const hasCu = atoms.some(a => a.type === 'Cu');
+                const hasZn = atoms.some(a => a.type === 'Zn');
+                const hasMn = atoms.some(a => a.type === 'Mn');
+                const hasCo = atoms.some(a => a.type === 'Co');
+                const hasNi = atoms.some(a => a.type === 'Ni');
+                
+                // Contar carbonos totales incluyendo grupos CH
+                let carbonCount = 0;
+                let hydrogenCount = 0;
+                let oxygenCount = 0;
+                let nitrogenCount = 0;
+                let otherElements = [];
+                
+                atoms.forEach(a => {
+                    if (a.type === 'C') carbonCount += 1;
+                    else if (a.type === 'CH3') { carbonCount += 1; hydrogenCount += 3; }
+                    else if (a.type === 'CH2') { carbonCount += 1; hydrogenCount += 2; }
+                    else if (a.type === 'CH') { carbonCount += 1; hydrogenCount += 1; }
+                    else if (a.type === 'COOH') { carbonCount += 1; oxygenCount += 2; hydrogenCount += 1; }
+                    else if (a.type === 'CHO') { carbonCount += 1; oxygenCount += 1; hydrogenCount += 1; }
+                    else if (a.type === 'BENCENO') carbonCount += 6;
+                    else if (a.type === 'GLICINA') carbonCount += 2;
+                    else if (a.type === 'ALANINA') carbonCount += 3;
+                    else if (a.type === 'SERINA') carbonCount += 3;
+                    else if (a.type === 'VALINA') carbonCount += 5;
+                    else if (a.type === 'LEUCINA') carbonCount += 6;
+                    else if (a.type === 'GLUCOSA') carbonCount += 6;
+                    else if (a.type === 'FRUCTOSA') carbonCount += 6;
+                    else if (a.type === 'SACAROSA') carbonCount += 12;
+                    else if (a.type === 'ACIDO_GRASO') carbonCount += 18;
+                    else if (a.type === 'COLESTEROL') carbonCount += 27;
+                    else if (a.type === 'H') hydrogenCount += 1;
+                    else if (a.type === 'O') oxygenCount += 1;
+                    else if (a.type === 'N') nitrogenCount += 1;
+                    else if (a.type === 'OH') { oxygenCount += 1; hydrogenCount += 1; }
+                    else if (a.type === 'NH2') { nitrogenCount += 1; hydrogenCount += 2; }
+                    else if (a.type === 'SH') { hydrogenCount += 1; otherElements.push('S'); }
+                    else if (a.type === 'NO2') { nitrogenCount += 1; oxygenCount += 2; }
+                    else if (a.type === 'CN') { carbonCount += 1; nitrogenCount += 1; }
+                    else if (a.type === 'SO3H') { oxygenCount += 3; hydrogenCount += 1; otherElements.push('S'); }
+                    else if (a.type === 'PO4') { oxygenCount += 4; otherElements.push('P'); }
+                    else if (a.type === 'Cl') otherElements.push('Cl');
+                    else if (a.type === 'Br') otherElements.push('Br');
+                    else if (a.type === 'I') otherElements.push('I');
+                    else if (a.type === 'F') otherElements.push('F');
+                    else if (a.type === 'Na') otherElements.push('Na');
+                    else if (a.type === 'K') otherElements.push('K');
+                    else if (a.type === 'Ca') otherElements.push('Ca');
+                    else if (a.type === 'Mg') otherElements.push('Mg');
+                    else if (a.type === 'Fe') otherElements.push('Fe');
+                    else if (a.type === 'Cu') otherElements.push('Cu');
+                    else if (a.type === 'Zn') otherElements.push('Zn');
+                    else if (a.type === 'Mn') otherElements.push('Mn');
+                    else if (a.type === 'Co') otherElements.push('Co');
+                    else if (a.type === 'Ni') otherElements.push('Ni');
+                    else if (a.type === 'S') otherElements.push('S');
+                    else if (a.type === 'P') otherElements.push('P');
+                });
+                
+                const alkaneNames = ['', 'Metano', 'Etano', 'Propano', 'Butano', 'Pentano', 'Hexano', 'Heptano', 'Octano', 'Nonano', 'Decano', 'Undecano', 'Dodecano', 'Tridecano', 'Tetradecano', 'Pentadecano', 'Hexadecano', 'Heptadecano', 'Octadecano', 'Nonadecano', 'Eicosano'];
+                
+                // Generar nombre basado en grupo funcional principal
+                if (hasCOOH) {
+                    const baseName = alkaneNames[carbonCount] || 'Ácido orgánico';
+                    return `Ácido ${baseName.replace('ano', 'oico')}`;
+                }
+                
+                if (hasCHO) {
+                    const baseName = alkaneNames[carbonCount] || 'Aldehído';
+                    return `${baseName.replace('ano', 'al')} (Aldehído)`;
+                }
+                
+                if (hasOH) {
+                    const baseName = alkaneNames[carbonCount] || 'Alcohol';
+                    if (carbonCount === 1) return 'Metanol';
+                    if (carbonCount === 2) return 'Etanol';
+                    return `${baseName.replace('ano', 'anol')} (Alcohol)`;
+                }
+                
+                if (hasNH2) {
+                    const baseName = alkaneNames[carbonCount] || 'Amina';
+                    return `${baseName.replace('ano', 'amina')} (Amina)`;
+                }
+                
+                if (hasSH) {
+                    const baseName = alkaneNames[carbonCount] || 'Tiol';
+                    return `${baseName.replace('ano', 'tiol')} (Tiol)`;
+                }
+                
+                if (hasNO2) {
+                    const baseName = alkaneNames[carbonCount] || 'Nitrocompuesto';
+                    return `${baseName.replace('ano', 'nitro')} (Nitro)`;
+                }
+                
+                if (hasCN) {
+                    const baseName = alkaneNames[carbonCount] || 'Nitrilo';
+                    return `${baseName.replace('ano', 'nitrilo')} (Nitrilo)`;
+                }
+                
+                if (hasSO3H) {
+                    const baseName = alkaneNames[carbonCount] || 'Ácido sulfónico';
+                    return `Ácido ${baseName.replace('ano', 'sulfónico')}`;
+                }
+                
+                if (hasPO4) {
+                    const baseName = alkaneNames[carbonCount] || 'Fosfato';
+                    return `${baseName.replace('ano', 'fosfato')} (Fosfato)`;
+                }
+                
+                if (hasBenceno) {
+                    if (hasOH) return 'Fenol';
+                    if (hasNH2) return 'Anilina';
+                    if (hasCOOH) return 'Ácido benzoico';
+                    if (hasCHO) return 'Benzaldehído';
+                    if (hasNO2) return 'Nitrobenceno';
+                    if (hasCl) return 'Clorobenceno';
+                    if (hasBr) return 'Bromobenceno';
+                    if (hasI) return 'Yodobenceno';
+                    if (hasF) return 'Fluorobenceno';
+                    if (carbonCount === 6) return 'Benceno';
+                    if (carbonCount === 7) return 'Tolueno';
+                    return 'Derivado de benceno';
+                }
+                
+                if (hasCl) {
+                    const baseName = alkaneNames[carbonCount] || 'Cloruro';
+                    return `${baseName.replace('ano', 'cloro')} (Cloruro)`;
+                }
+                
+                if (hasBr) {
+                    const baseName = alkaneNames[carbonCount] || 'Bromuro';
+                    return `${baseName.replace('ano', 'bromo')} (Bromuro)`;
+                }
+                
+                if (hasI) {
+                    const baseName = alkaneNames[carbonCount] || 'Yoduro';
+                    return `${baseName.replace('ano', 'yodo')} (Yoduro)`;
+                }
+                
+                if (hasF) {
+                    const baseName = alkaneNames[carbonCount] || 'Fluoruro';
+                    return `${baseName.replace('ano', 'fluoro')} (Fluoruro)`;
+                }
+                
+                // Metales y otros elementos
+                if (hasNa) return 'Compuesto de sodio';
+                if (hasK) return 'Compuesto de potasio';
+                if (hasCa) return 'Compuesto de calcio';
+                if (hasMg) return 'Compuesto de magnesio';
+                if (hasFe) return 'Compuesto de hierro';
+                if (hasCu) return 'Compuesto de cobre';
+                if (hasZn) return 'Compuesto de zinc';
+                if (hasMn) return 'Compuesto de manganeso';
+                if (hasCo) return 'Compuesto de cobalto';
+                if (hasNi) return 'Compuesto de níquel';
+                
+                // Biomoléculas
+                if (atoms.some(a => a.type === 'GLICINA')) return 'Glicina (Glicocola)';
+                if (atoms.some(a => a.type === 'ALANINA')) return 'Alanina';
+                if (atoms.some(a => a.type === 'SERINA')) return 'Serina';
+                if (atoms.some(a => a.type === 'VALINA')) return 'Valina';
+                if (atoms.some(a => a.type === 'LEUCINA')) return 'Leucina';
+                if (atoms.some(a => a.type === 'GLUCOSA')) return 'Glucosa';
+                if (atoms.some(a => a.type === 'FRUCTOSA')) return 'Fructosa';
+                if (atoms.some(a => a.type === 'SACAROSA')) return 'Sacarosa';
+                if (atoms.some(a => a.type === 'ACIDO_GRASO')) return 'Ácido graso';
+                if (atoms.some(a => a.type === 'COLESTEROL')) return 'Colesterol';
+                
                 // Nombre genérico basado en el número de carbonos
-                const carbonCount = atoms.filter(a => a.type === 'C').length;
-                const alkaneNames = ['', 'Metano', 'Etano', 'Propano', 'Butano', 'Pentano', 'Hexano', 'Heptano', 'Octano', 'Nonano', 'Decano'];
                 if (carbonCount > 0 && carbonCount < alkaneNames.length) {
-                    return alkaneNames[carbonCount] || 'Compuesto orgánico';
+                    let name = alkaneNames[carbonCount] || 'Compuesto orgánico';
+                    // Añadir información de otros elementos si existen
+                    if (otherElements.length > 0) {
+                        name += ` (con ${otherElements.join(', ')})`;
+                    }
+                    return name;
+                }
+                
+                // Si no hay carbonos, mostrar elementos presentes
+                if (otherElements.length > 0) {
+                    return `Compuesto con ${otherElements.join(', ')}`;
                 }
                 
                 return atoms.map(a => a.label).join('-');
@@ -1387,17 +1719,120 @@
                 const atoms = atomsData[section];
                 if (atoms.length === 0) return '-';
                 
+                const atomTypes = atoms.map(a => a.type).join('-');
+                
+                // Nombres comunes extensivos
                 const commonNames = {
-                    'CH3-CH2-OH': 'Alcohol etílico',
-                    'CH3-COOH': 'Vinagre',
+                    // Alcanos
+                    'CH3-CH3': 'Gas etano',
+                    'CH3-CH2-CH3': 'Gas propano',
                     'CH3-CH2-CH2-CH3': 'Gas butano',
                     'CH3-CH2-CH2-CH2-CH3': 'Gas pentano',
+                    'CH3-CH2-CH2-CH2-CH2-CH3': 'Gas hexano',
+                    // Alquenos
+                    'CH2=CH2': 'Etileno',
+                    'CH3-CH=CH2': 'Propileno',
+                    'CH3-CH2-CH=CH2': '1-Buteno',
+                    // Alquinos
+                    'CH=CH': 'Acetileno',
+                    'CH3-C=CH': 'Metilacetileno',
+                    // Alcoholes
+                    'CH3-OH': 'Alcohol de madera',
+                    'CH3-CH2-OH': 'Alcohol etílico',
+                    'CH3-CH2-CH2-OH': 'Alcohol propílico',
+                    'CH3-CH(OH)-CH3': 'Alcohol isopropílico',
+                    'CH3-CH2-CH2-CH2-OH': 'Alcohol butílico',
+                    'CH3-CH2-CH2-CH2-CH2-OH': 'Alcohol amílico',
+                    // Ácidos
+                    'H-COOH': 'Ácido fórmico',
+                    'CH3-COOH': 'Vinagre / Ácido acético',
+                    'CH3-CH2-COOH': 'Ácido propiónico',
+                    'CH3-CH2-CH2-COOH': 'Ácido butírico',
+                    'CH3-CH2-CH2-CH2-COOH': 'Ácido valérico',
+                    // Aldehídos
+                    'H-CHO': 'Formaldehído',
+                    'CH3-CHO': 'Acetaldehído',
+                    'CH3-CH2-CHO': 'Propionaldehído',
+                    'CH3-CH2-CH2-CHO': 'Butiraldehído',
+                    // Cetonas
+                    'CH3-CO-CH3': 'Acetona',
+                    'CH3-CO-CH2-CH3': 'Metiletilcetona',
+                    'CH3-CH2-CO-CH2-CH3': 'Dietilcetona',
+                    // Ésteres
+                    'CH3-COO-CH3': 'Acetato de metilo',
+                    'CH3-COO-CH2-CH3': 'Acetato de etilo',
+                    'CH3-CH2-COO-CH3': 'Propionato de metilo',
+                    // Éteres
+                    'CH3-O-CH3': 'Éter dimetílico',
+                    'CH3-O-CH2-CH3': 'Éter metiletílico',
+                    'CH3-CH2-O-CH2-CH3': 'Éter dietílico',
+                    // Aminas
+                    'CH3-NH2': 'Metilamina',
+                    'CH3-CH2-NH2': 'Etilamina',
+                    'CH3-CH2-CH2-NH2': 'Propilamina',
+                    'CH3-NH-CH3': 'Dimetilamina',
+                    'CH3-CH2-NH-CH3': 'Metiletilamina',
+                    'CH3-CH2-NH-CH2-CH3': 'Dietilamina',
+                    // Haluros
+                    'CH3-Cl': 'Cloruro de metilo',
+                    'CH3-Br': 'Bromuro de metilo',
+                    'CH3-I': 'Yoduro de metilo',
+                    'CH3-CH2-Cl': 'Cloruro de etilo',
+                    'CH3-CH2-Br': 'Bromuro de etilo',
+                    // Aromáticos
+                    'C6H6': 'Benceno',
+                    'C6H5-CH3': 'Tolueno',
+                    'C6H5-OH': 'Fenol',
+                    'C6H5-NH2': 'Anilina',
+                    'C6H5-COOH': 'Ácido benzoico',
+                    'C6H5-CHO': 'Benzaldehído',
+                    // Sales y compuestos inorgánicos
+                    'NH3': 'Amoníaco',
+                    'H2O': 'Agua',
+                    'H2': 'Hidrógeno',
+                    'O2': 'Oxígeno',
+                    'N2': 'Nitrógeno',
+                    'CO2': 'Dióxido de carbono',
+                    'CO': 'Monóxido de carbono',
+                    'H2O2': 'Agua oxigenada',
+                    'H2SO4': 'Ácido sulfúrico',
+                    'HCl': 'Ácido clorhídrico',
+                    'HNO3': 'Ácido nítrico',
+                    'NaOH': 'Sosa cáustica',
+                    'KOH': 'Potasa cáustica',
+                    'NaCl': 'Sal de mesa',
+                    'KCl': 'Cloruro de potasio',
+                    'CaCO3': 'Caliza',
                 };
                 
-                const atomTypes = atoms.map(a => a.type).join('-');
                 if (commonNames[atomTypes]) {
                     return commonNames[atomTypes];
                 }
+                
+                // Detectar grupos funcionales para nombres comunes
+                const hasOH = atoms.some(a => a.type === 'OH');
+                const hasCOOH = atoms.some(a => a.type === 'COOH');
+                const hasCHO = atoms.some(a => a.type === 'CHO');
+                const hasNH2 = atoms.some(a => a.type === 'NH2');
+                const hasBenceno = atoms.some(a => a.type === 'BENCENO');
+                
+                if (hasCOOH) return 'Ácido orgánico';
+                if (hasOH) return 'Alcohol';
+                if (hasCHO) return 'Aldehído';
+                if (hasNH2) return 'Amina';
+                if (hasBenceno) return 'Compuesto aromático';
+                
+                // Biomoléculas
+                if (atoms.some(a => a.type === 'GLICINA')) return 'Aminoácido esencial';
+                if (atoms.some(a => a.type === 'ALANINA')) return 'Aminoácido no esencial';
+                if (atoms.some(a => a.type === 'SERINA')) return 'Aminoácido polar';
+                if (atoms.some(a => a.type === 'VALINA')) return 'Aminoácido ramificado';
+                if (atoms.some(a => a.type === 'LEUCINA')) return 'Aminoácido esencial';
+                if (atoms.some(a => a.type === 'GLUCOSA')) return 'Azúcar simple';
+                if (atoms.some(a => a.type === 'FRUCTOSA')) return 'Azúcar de frutas';
+                if (atoms.some(a => a.type === 'SACAROSA')) return 'Azúcar de mesa';
+                if (atoms.some(a => a.type === 'ACIDO_GRASO')) return 'Lípido';
+                if (atoms.some(a => a.type === 'COLESTEROL')) return 'Esterol';
                 
                 return 'Nombre común no disponible';
             }
@@ -1423,6 +1858,20 @@
             // Hacer funciones globales para los botones onclick
             window.zoomSection = zoomSection;
             window.toggleNomenclature = toggleNomenclature;
+            
+            function toggleMinimize(section) {
+                const sectionEl = document.getElementById(`section-${section}`);
+                const btn = sectionEl.querySelector('.minimize-btn');
+                sectionEl.classList.toggle('minimized');
+                btn.textContent = sectionEl.classList.contains('minimized') ? '□' : '_';
+                if (!sectionEl.classList.contains('minimized')) {
+                    setTimeout(() => {
+                        resizeCanvas(section);
+                        renderCanvas(section);
+                    }, 50);
+                }
+            }
+            window.toggleMinimize = toggleMinimize;
 
             // ============ SERIALIZACIÓN A NOTACIÓN ============
             function generateNotation(section) {
@@ -1822,17 +2271,31 @@
                 if (mode === 'calculator') {
                     btnCalcMode.classList.add('active');
                     btnReadmeMode.classList.remove('active');
+                    btnChangelogMode.classList.remove('active');
                     reactionContainer.style.display = 'flex';
                     readmeViewer.classList.remove('active');
+                    changelogViewer.classList.remove('active');
                     notationBar.style.display = 'flex';
                     sidePanel.style.display = 'flex';
                     resizeAllCanvases();
                     renderAllCanvases();
-                } else {
+                } else if (mode === 'readme') {
                     btnCalcMode.classList.remove('active');
                     btnReadmeMode.classList.add('active');
+                    btnChangelogMode.classList.remove('active');
                     reactionContainer.style.display = 'none';
                     readmeViewer.classList.add('active');
+                    changelogViewer.classList.remove('active');
+                    notationBar.style.display = 'none';
+                    sidePanel.style.display = 'none';
+                    hideError();
+                } else if (mode === 'changelog') {
+                    btnCalcMode.classList.remove('active');
+                    btnReadmeMode.classList.remove('active');
+                    btnChangelogMode.classList.add('active');
+                    reactionContainer.style.display = 'none';
+                    readmeViewer.classList.remove('active');
+                    changelogViewer.classList.add('active');
                     notationBar.style.display = 'none';
                     sidePanel.style.display = 'none';
                     hideError();
@@ -1841,6 +2304,7 @@
 
             btnCalcMode.addEventListener('click', () => setMode('calculator'));
             btnReadmeMode.addEventListener('click', () => setMode('readme'));
+            btnChangelogMode.addEventListener('click', () => setMode('changelog'));
 
             // ============ CONTENIDO README ============
             function populateReadme() {
@@ -1916,6 +2380,70 @@
                 `;
             }
             populateReadme();
+
+            // ============ CONTENIDO CHANGELOG ============
+            function populateChangelog() {
+                changelogViewer.innerHTML = `
+                    <h1><i class="fa-solid fa-clock-rotate-left"></i> Historial de Cambios</h1>
+                    <hr>
+                    <h2>Novedades en v2.1.0</h2>
+                    <ul>
+                        <li>Sistema de nomenclatura mejorado con detección completa de todos los elementos (incluyendo metales y no-CH)</li>
+                        <li>Corrección del sistema de zoom para alinear correctamente la posición visual con la funcional</li>
+                        <li>Botones de minimizar/maximizar en cada sección de reacción para mejor organización</li>
+                        <li>Aumento de altura de las secciones de reacción (280px min-height, 500px max-height)</li>
+                        <li>Mejor visibilidad del campo de notación con fondo blanco y texto negro</li>
+                        <li>Expansión masiva de la base de datos de nomenclatura IUPAC y nombres comunes</li>
+                        <li>Detección inteligente de grupos funcionales y elementos metálicos</li>
+                        <li>Nombres IUPAC hasta eicosano (20 carbonos) y compuestos inorgánicos completos</li>
+                        <li>Creación de Changelog</li>
+                    </ul>
+                    <hr>
+                    <h2>Novedades en v2.0.2</h2>
+                    <ul>
+                        <li>Mejora de interfaz</li>
+                        <li>Corrección de errores del zoom</li>
+                        <li>Agregado de Grupos y Elementos periodicos</li>
+                    </ul>
+                    <hr>
+                    <h2>Novedades en v2.0.1</h2>
+                    <ul>
+                        <li>Corrección de errores en el parser de notación</li>
+                        <li>Mejora en la detección de grupos funcionales</li>
+                        <li>Optimización del rendimiento</li>
+                    </ul>
+                    <hr>
+                    <h2>Novedades en v2.0.0</h2>
+                    <ul>
+                        <li>División de pantalla en secciones independientes para reactivos, condiciones y productos</li>
+                        <li>Simulación de reacciones químicas con notación especializada</li>
+                        <li>Generación automática de nombres IUPAC con opción de cambiar a nomenclatura común</li>
+                        <li>Zoom independiente en cada sección con teclas 'i' y 'o'</li>
+                        <li>Ampliación de la tabla periódica con más elementos (Na, K, Ca, Mg, Fe, Cu, Zn, Mn, Co, Ni)</li>
+                        <li>Nuevos grupos funcionales (CHO, CN, SH, SO3H, PO4, COO⁻, NH3⁺)</li>
+                        <li>Nuevas biomoléculas (serina, valina, leucina, fructosa, sacarosa, colesterol)</li>
+                    </ul>
+                    <hr>
+                    <h2>Novedades en v1.0.2</h2>
+                    <ul>
+                        <li>Corrección de errores en el parser de notación</li>
+                        <li>Corrección en errores de objetos</li>
+                        <li>Corrección en errores de el view del README</li>
+                        <li>Mejora en la legibilidad del código</li>
+                    </ul>
+                    <hr>
+                    <h2>Novedades en v1.0.1</h2>
+                    <ul>
+                        <li>Corrección de errores en la estructura del js</li>
+                        <li>Mejora en los json del js</li>
+                        <li>Mayor información en la interfaz</li>
+                        <li>Iconos usando FontAwesome</li>
+                    </ul>
+                    <hr>
+                    <p><em>Este documento muestra el historial de cambios de OrganiCuladora.</em></p>
+                `;
+            }
+            populateChangelog();
 
             // ============ INICIALIZACIÓN ============
             function init() {

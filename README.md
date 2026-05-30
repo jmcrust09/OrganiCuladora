@@ -1,6 +1,6 @@
 # OrganiCuladora
 
-**Versión 2.0.0**
+**Versión 2.1.0**
 *Representación molecular interactiva con notación lineal compacta, simulación de reacciones y simulación 3D aparente.*
 
 ---
@@ -10,15 +10,6 @@
 La **Calculadora de Química Orgánica** es una herramienta web interactiva que permite construir moléculas orgánicas y simular reacciones químicas mediante una interfaz dual: un editor gráfico con arrastre de átomos y grupos funcionales, y un intérprete de notación textual compacta. Cada átomo se representa como un círculo con sombreado que simula profundidad tridimensional (efecto *faux-3D*) y el sistema ofrece retroalimentación inmediata, generando el nombre IUPAC de la molécula resultante.
 
 La aplicación está orientada a estudiantes, docentes e investigadores que requieran visualizar estructuras de forma ágil, desde grupos alquilo simples hasta biomoléculas complejas como proteínas, carbohidratos y lípidos.
-
-**Novedades en v2.0.0:**
-- División de pantalla en secciones independientes para reactivos, condiciones y productos
-- Simulación de reacciones químicas con notación especializada
-- Generación automática de nombres IUPAC con opción de cambiar a nomenclatura común
-- Zoom independiente en cada sección con teclas 'i' y 'o'
-- Ampliación de la tabla periódica con más elementos (Na, K, Ca, Mg, Fe, Cu, Zn, Mn, Co, Ni)
-- Nuevos grupos funcionales (CHO, CN, SH, SO3H, PO4, COO⁻, NH3⁺)
-- Nuevas biomoléculas (serina, valina, leucina, fructosa, sacarosa, colesterol)
 
 ---
 
@@ -205,7 +196,7 @@ Ejemplos de errores detectados:
 Desarrollado por WM – 2026.
 Licencia Libre sin restricción
 
-**Versión 2.0.0** - Actualización mayor con simulación de reacciones, secciones independientes y ampliación de elementos.
+**Versión 2.1.0** - Actualización con sistema de nomenclatura mejorado, corrección de zoom, minimización de secciones y expansión masiva de base de datos de compuestos.
 
 ---
 
