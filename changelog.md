@@ -7,7 +7,8 @@
 - Expansión masiva de la base de datos de nomenclatura IUPAC y nombres comunes
 - Detección inteligente de grupos funcionales y elementos metálicos
 - Nombres IUPAC hasta eicosano (20 carbonos) y compuestos inorgánicos completos
-- Creación de Changelog
+- Creación de Changelog e integración en el html
+- Actualización a Github
 
 **Novedades en v2.0.2:**
 - Mejora de interfaz
@@ -27,6 +28,7 @@
 - Ampliación de la tabla periódica con más elementos (Na, K, Ca, Mg, Fe, Cu, Zn, Mn, Co, Ni)
 - Nuevos grupos funcionales (CHO, CN, SH, SO3H, PO4, COO⁻, NH3⁺)
 - Nuevas biomoléculas (serina, valina, leucina, fructosa, sacarosa, colesterol)
+- Subida a Github
 
 **Novedades en v1.0.2:**
 - Corrección de errores en el parser de notación
