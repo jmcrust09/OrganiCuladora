@@ -1,13 +1,15 @@
 # OrganiCuladora
 
-**Versión 2.1.0**
-*Representación molecular interactiva con notación lineal compacta, simulación de reacciones y simulación 3D aparente.*
+**Versión 2.2.0**
+*Representación molecular interactiva con notación lineal compacta, simulación de reacciones, diagrama de ruta exportable y simulación 3D aparente.*
 
 ---
 
 ## Descripción General
 
 La **Calculadora de Química Orgánica** es una herramienta web interactiva que permite construir moléculas orgánicas y simular reacciones químicas mediante una interfaz dual: un editor gráfico con arrastre de átomos y grupos funcionales, y un intérprete de notación textual compacta. Cada átomo se representa como un círculo con sombreado que simula profundidad tridimensional (efecto *faux-3D*) y el sistema ofrece retroalimentación inmediata, generando el nombre IUPAC de la molécula resultante.
+
+A partir de la **v2.2.0** se incorpora un tercer modo de trabajo, **Ruta**, que ofrece un lienzo de gran formato (1600 × 1000 px) para dibujar diagramas metabólicos o esquemas de reacción mediante moléculas arrastrables y flechas (rectas o curvas), con **exportación directa a PNG** para su uso posterior en editores de texto o presentaciones.
 
 La aplicación está orientada a estudiantes, docentes e investigadores que requieran visualizar estructuras de forma ágil, desde grupos alquilo simples hasta biomoléculas complejas como proteínas, carbohidratos y lípidos.
 
@@ -18,7 +20,7 @@ La aplicación está orientada a estudiantes, docentes e investigadores que requ
 - **Construcción visual por arrastre**
   Cada elemento químico o grupo predefinido se muestra como una esfera 2D con sombras, simulando un objeto tridimensional. Las figuras pueden arrastrarse libremente sobre el lienzo para formar enlaces.
 - **Elementos individuales y grupos predefinidos**
-  Además de átomos (C, H, O, N, S, P, halógenos, metales alcalinos y de transición), se ofrecen grupos de uso común: `–CH₃`, `–CH₂–`, `–CH–`, `–OH`, `–NH₂`, `–COOH`, `–CHO`, `–CN`, `–SH`, `–SO₃H`, `–PO₄`, `–COO⁻`, `–NH₃⁺`, anillo de benceno, así como módulos complejos (aminoácidos, monosacáridos, ácidos grasos, colesterol) que representan proteínas, carbohidratos y lípidos.
+  Además de átomos (C, H, O, N, S, P, halógenos, metales alcalinos y de transición), se ofrecen grupos de uso común: `–CH₃`, `–CH₂–`, `–CH–`, `–OH`, `–NH₂`, `–COOH`, `–CHO`, `–CN`, `–SH`, `–SO₃H`, `–PO₄`, **`–PO₃²⁻`**, `–COO⁻`, `–NH₃⁺`, anillo de benceno, así como módulos complejos (aminoácidos, monosacáridos, ácidos grasos, colesterol) que representan proteínas, carbohidratos y lípidos.
 - **Simulación de reacciones químicas**
   La pantalla se divide en secciones independientes para reactivos, condiciones y productos. Cada sección tiene su propio lienzo con zoom independiente.
 - **Notación de reacciones**
@@ -29,9 +31,16 @@ La aplicación está orientada a estudiantes, docentes e investigadores que requ
   Cada sección puede hacer zoom con los botones +/- o con las teclas 'i' (zoom in) y 'o' (zoom out) cuando el cursor está sobre la sección.
 - **Notación textual compacta**
   Admite una sintaxis inspirada en SMILES pero optimizada para escritura manual rápida, con delimitadores especiales para ramificaciones, multiplicidad y estereoquímica relativa.
-- **Dos modos de visualización**
-  
+- **Modo Ruta (diagrama metabólico)** *(nuevo en v2.2.0)*
+  Lienzo de gran formato (1600 × 1000) con herramientas de:
+  - **Mover** moléculas arrastradas desde el panel lateral.
+  - **Flecha recta** y **flecha curva** (arco trazado con el ratón; la curvatura se ajusta automáticamente por mínimos cuadrados).
+  - **Borrar** moléculas o flechas haciendo clic sobre ellas.
+  - **Guardar Imagen** para descargar el diagrama completo como archivo PNG con fondo blanco.
+- **Tres modos de visualización**
+
   - **Calculadora gráfica:** lienzo interactivo con los círculos 3D dividido en secciones de reacción.
+  - **Ruta:** lienzo único de gran formato para diagramas con flechas y moléculas exportables a PNG.
   - **Documentación Markdown:** visor integrado con la guía de formato y referencia del proyecto (este mismo documento).
 - **Validación y alertas**
   Los errores de sintaxis o combinaciones químicamente inviables se notifican mediante una alerta estilizada en la esquina inferior izquierda, sin interrumpir el flujo de trabajo.
@@ -51,6 +60,8 @@ La interfaz sigue un estilo **brutalista industrial** con ligeros acentos orgán
 | Texto principal        | Negro carbón     | `#1A1A1A` |
 
 *Nota: En la versión oscura de la interfaz (alternativa), los acentos verdes sustituyen a los azules del ejemplo brutalista original, manteniendo una coherencia cromática con el tema de química orgánica.*
+
+En el **modo Ruta** el lienzo de trabajo es blanco puro (`#FFFFFF`) con borde gris oscuro (`#2E2E2E`) y sombra paralela, para favorecer la exportación limpia a PNG.
 
 ---
 
@@ -83,6 +94,9 @@ La cadena principal y las ramificaciones se escriben usando los siguientes símb
 3. **Benceno con grupo nitro**
    `AnilloBenceno - NO2`
    *Los grupos cíclicos pueden escribirse como palabra clave; el sistema los despliega automáticamente.*
+4. **Glucosa-6-fosfato** *(con el nuevo grupo PO₃²⁻)*
+   `GLUCOSA - PO3`
+   *Interpretación:* una molécula de glucosa enlazada a un grupo fosfato (representado como `PO₃²⁻` en el lienzo).*
 
 ### Ejemplos de Reacciones
 
@@ -104,14 +118,14 @@ Desde el panel lateral pueden insertarse directamente:
 
 - **Átomos individuales:** H, C, N, O, P, S, halógenos (Cl, Br, I, F), metales alcalinos (Na, K), metales alcalinotérreos (Ca, Mg), metales de transición (Fe, Cu, Zn, Mn, Co, Ni).
 - **Grupos alquilo:** `–CH₃`, `–CH₂–`, `–CH–` (con valencias libres para enlazar).
-- **Grupos funcionales:** `–OH`, `–NH₂`, `–COOH`, `–CHO`, `–CN`, `–SH`, `–SO₃H`, `–PO₄`, `–COO⁻`, `–NH₃⁺`.
+- **Grupos funcionales:** `–OH`, `–NH₂`, `–COOH`, `–CHO`, `–CN`, `–SH`, `–SO₃H`, `–PO₄`, **`–PO₃²⁻`** *(nuevo en v2.2.0)*, `–COO⁻`, `–NH₃⁺`.
 - **Anillo de benceno:** estructura cíclica de seis carbonos con aromaticidad.
 - **Biomoléculas modulares:**
   - *Proteínas:* fragmentos de aminoácidos (glicina, alanina, serina, valina, leucina) representados como cadenas con grupo amino y carboxilo.
   - *Carbohidratos:* anillos de piranosa/furanosa simplificados (glucosa, fructosa, sacarosa).
   - *Lípidos:* cadenas de ácidos grasos (ej. `CH3(CH2)16COOH`) y colesterol.
 
-La selección es fluida: al soltar un grupo sobre un átomo del lienzo de cualquier sección, se genera el enlace correspondiente y se actualiza la notación textual automáticamente.
+La selección es fluida: al soltar un grupo sobre un átomo del lienzo de cualquier sección, se genera el enlace correspondiente y se actualiza la notación textual automáticamente. En el **modo Ruta**, el mismo gesto de arrastre coloca el grupo sobre el lienzo grande, sin necesidad de enlazar átomos preexistentes.
 
 ---
 
@@ -126,12 +140,26 @@ La selección es fluida: al soltar un grupo sobre un átomo del lienzo de cualqu
 - Cada sección tiene controles de zoom (+/-) y muestra el nombre IUPAC del compuesto.
 - Al hacer clic en el nombre IUPAC, cambia entre nomenclatura IUPAC y nombre común.
 - Teclas 'i' y 'o' permiten zoom in/out en la sección donde está el cursor.
-- Panel superior con botones para cambiar entre modo **Calculadora** y **README**.
+- Panel superior con botones para cambiar entre modos **Calculadora**, **Ruta**, **README** y **Changelog**.
 
-### 2. Visor Markdown (README)
+### 2. Modo Ruta (Diagrama) *(nuevo en v2.2.0)*
+
+- Lienzo único de **1600 × 1000 px** con área desplazable.
+- Barra de herramientas superior con:
+  - **Mover** — arrastra moléculas ya colocadas.
+  - **Flecha** — traza una flecha recta entre dos puntos.
+  - **Curva** — traza un arco libre; el sistema ajusta automáticamente la curvatura.
+  - **Borrar** — elimina moléculas o flechas con un clic.
+  - **Guardar Imagen** — exporta el diagrama completo a PNG (fondo blanco, `ruta-<timestamp>.png`).
+- Arrastra moléculas desde el panel lateral directamente al lienzo.
+- Si sueltas una molécula cerca de otra, se genera un enlace automáticamente (igual que en el modo Calculadora).
+- Pensado para diagramas metabólicos: dibuja las rutas con flechas, coloca las moléculas en sus posiciones y guarda la imagen para añadir textos, enzimas o cofactores en un editor externo.
+
+### 3. Visor Markdown (README y Changelog)
 
 - Muestra el presente documento con formato completo (encabezados, tablas, código).
 - Permite consultar la sintaxis mientras se trabaja en el otro modo.
+- Pestaña **Changelog** con el historial de versiones.
 - El contenido está estático pero se puede actualizar con nuevas versiones de la herramienta.
 
 ---
@@ -151,14 +179,28 @@ Ejemplos de errores detectados:
 - Multiplicador no numérico (ej. `(CH3)x`).
 - Uso de `<>` fuera de un bloque `[]`.
 - Enlaces inconsistentes (cuádruple entre carbonos sin justificación).
+- Valencia excedida al intentar enlazar un átomo ya saturado.
+
+---
+
+## Exportación de Imágenes
+
+El modo **Ruta** incluye un botón **Guardar Imagen** que:
+
+1. Vuelve a renderizar el diagrama en el canvas (incluyendo átomos, enlaces y flechas).
+2. Genera un archivo **PNG** a resolución nativa (1600 × 1000 · `devicePixelRatio`).
+3. Descarga el archivo como `ruta-<timestamp>.png`.
+
+*Nota:* La exportación solo cubre el lienzo de Ruta. En el modo Calculadora, cada sección puede capturarse manualmente desde el navegador o guardando la página completa.
 
 ---
 
 ## Tecnologías Utilizadas
 
 - **Frontend puro:** HTML5, CSS3, JavaScript (Vanilla).
-- Sin dependencias externas.
-- Renderizado de moléculas mediante Canvas API.
+- Sin dependencias externas (solo Font Awesome vía CDN para los iconos).
+- Renderizado de moléculas mediante **Canvas API** (tanto en el modo Calculadora como en el modo Ruta).
+- **Exportación PNG** mediante `canvas.toDataURL('image/png')`.
 - Parsing de notación lineal con algoritmo de análisis sintáctico descendente recursivo.
 
 ---
@@ -179,24 +221,41 @@ Ejemplos de errores detectados:
 | `_`     | Espacio en blanco | `A + _ --> B + _`   | Reactivo/producto desconocido            |
 | `-(cond)->` | Condiciones | `A + B - H2SO4 / 140°C --> C` | Reacción con catalizador y temperatura |
 
+### Nuevos identificadores de grupos
+
+| Identificador | Grupo        | Notas                              |
+|---------------|--------------|-------------------------------------|
+| `PO4`         | –PO₄         | Fosfato neutro                      |
+| `PO3`         | –PO₃²⁻       | **Nuevo en v2.2.0** · fosfato ácido |
+| `COO`         | –COO⁻        | Carboxilato                         |
+| `NH3`         | –NH₃⁺        | Amonio                              |
+
 ---
 
 ## Atajos de Teclado
+
+### Calculadora
 
 - **i** - Zoom in en la sección donde está el cursor
 - **o** - Zoom out en la sección donde está el cursor
 - **Shift + clic** en dos átomos: crear enlace entre ellos
 - **Doble clic** en un átomo: eliminarlo
-- **Escape** - Cancelar modo de conexión
+- **Escape** - Cancelar modo de conexión / dibujo de flecha en curso
 - **Delete** - Eliminar átomo seleccionado
 - **Enter** en campo de notación: parsear la notación
+
+### Ruta
+
+- **Escape** - Cancela la flecha que se esté trazando y libera la molécula arrastrada.
+
+---
 
 ## Créditos y Licencia
 
 Desarrollado por WM – 2026.
 Licencia Libre sin restricción
 
-**Versión 2.1.0** - Actualización con sistema de nomenclatura mejorado, corrección de zoom, minimización de secciones y expansión masiva de base de datos de compuestos.
+**Versión 2.2.0** — Añadido el **modo Ruta** con lienzo de gran formato para diagramas metabólicos, **exportación a PNG**, y el nuevo grupo **fosfato –PO₃²⁻** disponible en el panel lateral, el parser y la nomenclatura.
 
 ---
 

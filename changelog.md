@@ -1,3 +1,13 @@
+**Novedades en v2.2.0:**
+- Nuevo **modo Ruta**: lienzo de gran formato (1600 × 1000 px) para dibujar diagramas metabólicos con moléculas arrastrables y flechas.
+- Herramientas de dibujo en modo Ruta: **Mover**, **Flecha recta**, **Flecha curva** (curvatura automática) y **Borrar** (moléculas y flechas).
+- **Exportación a PNG** del diagrama completo mediante el botón "Guardar Imagen" (fondo blanco, resolución nativa).
+- Añadido el grupo funcional **–PO₃²⁻** (fosfato ácido) al panel lateral, al parser de notación y a la generación de nombres IUPAC.
+- Ajuste dinámico del tamaño de etiqueta para grupos con más de 3 caracteres (p. ej. `PO₃²⁻`).
+- El botón "Limpiar" ahora actúa según el modo activo (Calculadora o Ruta).
+- `Escape` cancela el dibujo de flecha en curso y libera la molécula arrastrada en modo Ruta.
+- Actualización de la documentación (README y Changelog) a la versión 2.2.0.
+
 **Novedades en v2.1.0:**
 - Sistema de nomenclatura mejorado con detección completa de todos los elementos (incluyendo metales y no-CH)
 - Corrección del sistema de zoom para alinear correctamente la posición visual con la funcional
