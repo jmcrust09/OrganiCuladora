@@ -1,3 +1,13 @@
+**Novedades en v2.3.0:**
+- **Selector de orden de enlace** (— simple, = doble, ≡ triple) en la barra de notación del modo Calculadora y en la barra de herramientas del modo Ruta.
+- **Herramienta "Seleccionar"** en el modo Ruta: clic sobre el primer átomo (se resalta en azul) y clic sobre el segundo para crear el enlace con el orden activo. Si el enlace ya existía, se actualiza el orden.
+- **Shift + clic** en Calculadora ahora respeta el orden de enlace seleccionado (antes siempre creaba enlace simple).
+- **Drag & drop con orden de enlace**: al soltar un elemento cerca de otro átomo (≤ 40 px) en cualquiera de los dos modos, se crea el enlace con el orden activo.
+- **Atajos de teclado 1 / 2 / 3** para cambiar rápidamente el orden de enlace (ignorados si el foco está en un input de texto).
+- **Corrección del resaltado visual**: el halo al seleccionar un átomo en el modo Ruta pasa de verde fluorescente (`#486648`) a azul medio (`#1B5BA1`), más sobrio y coherente con el nuevo selector.
+- **Estilos defensivos**: se añadió `outline: none` a los `canvas`, wrappers y elementos arrastrables para eliminar halos no deseados del navegador al hacer foco.
+- Actualización de la documentación (README y Changelog) a la versión 2.3.0.
+
 **Novedades en v2.2.0:**
 - Nuevo **modo Ruta**: lienzo de gran formato (1600 × 1000 px) para dibujar diagramas metabólicos con moléculas arrastrables y flechas.
 - Herramientas de dibujo en modo Ruta: **Mover**, **Flecha recta**, **Flecha curva** (curvatura automática) y **Borrar** (moléculas y flechas).

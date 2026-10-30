@@ -1,7 +1,7 @@
 # OrganiCuladora
 
-**Versión 2.2.0**
-*Representación molecular interactiva con notación lineal compacta, simulación de reacciones, diagrama de ruta exportable y simulación 3D aparente.*
+**Versión 2.3.0**
+*Representación molecular interactiva con notación lineal compacta, simulación de reacciones, diagrama de ruta exportable, simulación 3D aparente y selector de orden de enlace (simple / doble / triple).*
 
 ---
 
@@ -10,6 +10,8 @@
 La **Calculadora de Química Orgánica** es una herramienta web interactiva que permite construir moléculas orgánicas y simular reacciones químicas mediante una interfaz dual: un editor gráfico con arrastre de átomos y grupos funcionales, y un intérprete de notación textual compacta. Cada átomo se representa como un círculo con sombreado que simula profundidad tridimensional (efecto *faux-3D*) y el sistema ofrece retroalimentación inmediata, generando el nombre IUPAC de la molécula resultante.
 
 A partir de la **v2.2.0** se incorpora un tercer modo de trabajo, **Ruta**, que ofrece un lienzo de gran formato (1600 × 1000 px) para dibujar diagramas metabólicos o esquemas de reacción mediante moléculas arrastrables y flechas (rectas o curvas), con **exportación directa a PNG** para su uso posterior en editores de texto o presentaciones.
+
+A partir de la **v2.3.0** se incorpora un **selector global de orden de enlace** (— simple, = doble, ≡ triple) accesible tanto en la barra de notación del modo Calculadora como en la barra de herramientas del modo Ruta. Además, se añade la herramienta **"Seleccionar"** en el modo Ruta, que permite crear o actualizar enlaces entre dos moléculas mediante dos clics consecutivos, usando el orden de enlace activo. También se corrige el resaltado visual al seleccionar átomos (antes verde fluorescente, ahora azul) y se eliminan los halos del navegador con `outline: none`.
 
 La aplicación está orientada a estudiantes, docentes e investigadores que requieran visualizar estructuras de forma ágil, desde grupos alquilo simples hasta biomoléculas complejas como proteínas, carbohidratos y lípidos.
 
@@ -31,9 +33,16 @@ La aplicación está orientada a estudiantes, docentes e investigadores que requ
   Cada sección puede hacer zoom con los botones +/- o con las teclas 'i' (zoom in) y 'o' (zoom out) cuando el cursor está sobre la sección.
 - **Notación textual compacta**
   Admite una sintaxis inspirada en SMILES pero optimizada para escritura manual rápida, con delimitadores especiales para ramificaciones, multiplicidad y estereoquímica relativa.
-- **Modo Ruta (diagrama metabólico)** *(nuevo en v2.2.0)*
+- **Selector de orden de enlace** *(nuevo en v2.3.0)*
+  Barra de botones **— = ≡** presente tanto en el modo Calculadora (junto al campo de notación) como en el modo Ruta (en la barra de herramientas). El orden seleccionado se aplica a:
+  - **Shift + clic** entre dos átomos (Calculadora).
+  - **Drag & drop** al soltar un elemento cerca de otro (ambos modos).
+  - **Herramienta "Seleccionar"** en Ruta (clic en el primer átomo → clic en el segundo).
+  - Atajos de teclado **1** (simple), **2** (doble), **3** (triple).
+- **Modo Ruta (diagrama metabólico)**
   Lienzo de gran formato (1600 × 1000) con herramientas de:
   - **Mover** moléculas arrastradas desde el panel lateral.
+  - **Seleccionar** *(nuevo en v2.3.0)* — clic en el primer átomo (se resalta en azul) y luego clic en el segundo para crear el enlace con el orden activo; si el enlace ya existía, se actualiza el orden.
   - **Flecha recta** y **flecha curva** (arco trazado con el ratón; la curvatura se ajusta automáticamente por mínimos cuadrados).
   - **Borrar** moléculas o flechas haciendo clic sobre ellas.
   - **Guardar Imagen** para descargar el diagrama completo como archivo PNG con fondo blanco.
@@ -56,12 +65,15 @@ La interfaz sigue un estilo **brutalista industrial** con ligeros acentos orgán
 | Fondo principal        | Blanco rectangular (sin bordes redondeados) | `#FFFFFF` |
 | Bordes y líneas        | Gris oscuro      | `#2E2E2E` |
 | Acentos (enlaces, botones activos, resaltes) | Verde musgo | `#486648` |
+| Acento secundario (orden de enlace activo, selección en Ruta) *(nuevo en v2.3.0)* | Azul medio | `#1B5BA1` |
 | Detalles secundarios (etiquetas, sombras) | Beige neutro | `#BEAF9D` |
 | Texto principal        | Negro carbón     | `#1A1A1A` |
 
 *Nota: En la versión oscura de la interfaz (alternativa), los acentos verdes sustituyen a los azules del ejemplo brutalista original, manteniendo una coherencia cromática con el tema de química orgánica.*
 
 En el **modo Ruta** el lienzo de trabajo es blanco puro (`#FFFFFF`) con borde gris oscuro (`#2E2E2E`) y sombra paralela, para favorecer la exportación limpia a PNG.
+
+A partir de la **v2.3.0** el resaltado al seleccionar un átomo en el modo Ruta pasa de verde fluorescente a **azul medio (`#1B5BA1`)**, ofreciendo un contraste más sobrio y coherente con el selector de orden de enlace activo.
 
 ---
 
@@ -94,7 +106,7 @@ La cadena principal y las ramificaciones se escriben usando los siguientes símb
 3. **Benceno con grupo nitro**
    `AnilloBenceno - NO2`
    *Los grupos cíclicos pueden escribirse como palabra clave; el sistema los despliega automáticamente.*
-4. **Glucosa-6-fosfato** *(con el nuevo grupo PO₃²⁻)*
+4. **Glucosa-6-fosfato** *(con el grupo PO₃²⁻)*
    `GLUCOSA - PO3`
    *Interpretación:* una molécula de glucosa enlazada a un grupo fosfato (representado como `PO₃²⁻` en el lienzo).*
 
@@ -125,7 +137,7 @@ Desde el panel lateral pueden insertarse directamente:
   - *Carbohidratos:* anillos de piranosa/furanosa simplificados (glucosa, fructosa, sacarosa).
   - *Lípidos:* cadenas de ácidos grasos (ej. `CH3(CH2)16COOH`) y colesterol.
 
-La selección es fluida: al soltar un grupo sobre un átomo del lienzo de cualquier sección, se genera el enlace correspondiente y se actualiza la notación textual automáticamente. En el **modo Ruta**, el mismo gesto de arrastre coloca el grupo sobre el lienzo grande, sin necesidad de enlazar átomos preexistentes.
+La selección es fluida: al soltar un grupo sobre un átomo del lienzo de cualquier sección, se genera el enlace correspondiente con el **orden de enlace activo** (simple, doble o triple) y se actualiza la notación textual automáticamente. En el **modo Ruta**, el mismo gesto de arrastre coloca el grupo sobre el lienzo grande y, si se suelta cerca de otro átomo, se crea el enlace con el orden seleccionado.
 
 ---
 
@@ -136,23 +148,26 @@ La selección es fluida: al soltar un grupo sobre un átomo del lienzo de cualqu
 - Pantalla dividida en secciones independientes: Reactivo 1, Reactivo 2, Condiciones, Producto.
 - Cada sección tiene su propio lienzo blanco con bordes rectos (sin `border-radius`).
 - Cada átomo se representa como un círculo con degradado radial y sombra paralela, dando ilusión de esfera 3D.
-- Las conexiones se dibujan como líneas rectas o dobles según el tipo de enlace.
+- Las conexiones se dibujan como líneas rectas, dobles o triples según el orden de enlace.
 - Cada sección tiene controles de zoom (+/-) y muestra el nombre IUPAC del compuesto.
 - Al hacer clic en el nombre IUPAC, cambia entre nomenclatura IUPAC y nombre común.
 - Teclas 'i' y 'o' permiten zoom in/out en la sección donde está el cursor.
+- **Selector de orden de enlace** `— = ≡` junto al campo de notación *(nuevo en v2.3.0)*.
 - Panel superior con botones para cambiar entre modos **Calculadora**, **Ruta**, **README** y **Changelog**.
 
-### 2. Modo Ruta (Diagrama) *(nuevo en v2.2.0)*
+### 2. Modo Ruta (Diagrama)
 
 - Lienzo único de **1600 × 1000 px** con área desplazable.
 - Barra de herramientas superior con:
   - **Mover** — arrastra moléculas ya colocadas.
+  - **Seleccionar** *(nuevo en v2.3.0)* — clic en el primer átomo (se resalta en azul) y luego clic en el segundo para crear el enlace con el orden activo. Si el enlace ya existía, se actualiza el orden.
   - **Flecha** — traza una flecha recta entre dos puntos.
   - **Curva** — traza un arco libre; el sistema ajusta automáticamente la curvatura.
   - **Borrar** — elimina moléculas o flechas con un clic.
   - **Guardar Imagen** — exporta el diagrama completo a PNG (fondo blanco, `ruta-<timestamp>.png`).
+  - **Selector de orden de enlace** `— = ≡` *(nuevo en v2.3.0)*.
 - Arrastra moléculas desde el panel lateral directamente al lienzo.
-- Si sueltas una molécula cerca de otra, se genera un enlace automáticamente (igual que en el modo Calculadora).
+- Si sueltas una molécula cerca de otra, se genera un enlace automáticamente con el orden de enlace activo.
 - Pensado para diagramas metabólicos: dibuja las rutas con flechas, coloca las moléculas en sus posiciones y guarda la imagen para añadir textos, enzimas o cofactores en un editor externo.
 
 ### 3. Visor Markdown (README y Changelog)
@@ -161,6 +176,30 @@ La selección es fluida: al soltar un grupo sobre un átomo del lienzo de cualqu
 - Permite consultar la sintaxis mientras se trabaja en el otro modo.
 - Pestaña **Changelog** con el historial de versiones.
 - El contenido está estático pero se puede actualizar con nuevas versiones de la herramienta.
+
+---
+
+## Cómo conectar dos elementos
+
+A partir de la **v2.3.0** existen varias formas de crear enlaces entre átomos, todas ellas respetando el **orden de enlace activo**:
+
+1. **Elige el orden de enlace:**
+   - Haz clic en los botones `—` (simple), `=` (doble) o `≡` (triple) del selector.
+   - O usa los atajos de teclado **1**, **2** y **3**.
+2. **Calculadora (Shift + clic):**
+   - Mantén pulsado **Shift** y haz clic sobre el primer átomo.
+   - Mantén **Shift** y haz clic sobre el segundo átomo.
+   - Se crea el enlace con el orden activo (respeta valencias y muestra error si se excede).
+3. **Calculadora (Drag & drop):**
+   - Arrastra un elemento desde el panel lateral y suéltalo cerca (≤ 40 px) de otro átomo ya colocado.
+   - Se crea el enlace automáticamente con el orden activo.
+4. **Ruta (herramienta Seleccionar):**
+   - Activa la herramienta **Seleccionar** (icono del enlace).
+   - Haz clic sobre el primer átomo → se resalta en **azul**.
+   - Haz clic sobre el segundo átomo → se crea o actualiza el enlace con el orden activo.
+   - Haz clic en un espacio vacío o pulsa **Escape** para cancelar la selección.
+5. **Ruta (Drag & drop):**
+   - Arrastra un elemento al lienzo grande. Si lo sueltas cerca de otro átomo, se conecta con el orden activo.
 
 ---
 
@@ -179,7 +218,7 @@ Ejemplos de errores detectados:
 - Multiplicador no numérico (ej. `(CH3)x`).
 - Uso de `<>` fuera de un bloque `[]`.
 - Enlaces inconsistentes (cuádruple entre carbonos sin justificación).
-- Valencia excedida al intentar enlazar un átomo ya saturado.
+- Valencia excedida al intentar enlazar un átomo ya saturado (con el orden de enlace activo).
 
 ---
 
@@ -187,7 +226,7 @@ Ejemplos de errores detectados:
 
 El modo **Ruta** incluye un botón **Guardar Imagen** que:
 
-1. Vuelve a renderizar el diagrama en el canvas (incluyendo átomos, enlaces y flechas).
+1. Vuelve a renderizar el diagrama en el canvas (incluyendo átomos, enlaces con su orden y flechas).
 2. Genera un archivo **PNG** a resolución nativa (1600 × 1000 · `devicePixelRatio`).
 3. Descarga el archivo como `ruta-<timestamp>.png`.
 
@@ -234,11 +273,18 @@ El modo **Ruta** incluye un botón **Guardar Imagen** que:
 
 ## Atajos de Teclado
 
+### Generales
+
+- **1** — Seleccionar orden de enlace **simple** (—)
+- **2** — Seleccionar orden de enlace **doble** (=)
+- **3** — Seleccionar orden de enlace **triple** (≡)
+  *(nuevos en v2.3.0 · ignorados si el foco está en un campo de texto)*
+
 ### Calculadora
 
 - **i** - Zoom in en la sección donde está el cursor
 - **o** - Zoom out en la sección donde está el cursor
-- **Shift + clic** en dos átomos: crear enlace entre ellos
+- **Shift + clic** en dos átomos: crear enlace con el orden activo
 - **Doble clic** en un átomo: eliminarlo
 - **Escape** - Cancelar modo de conexión / dibujo de flecha en curso
 - **Delete** - Eliminar átomo seleccionado
@@ -246,7 +292,7 @@ El modo **Ruta** incluye un botón **Guardar Imagen** que:
 
 ### Ruta
 
-- **Escape** - Cancela la flecha que se esté trazando y libera la molécula arrastrada.
+- **Escape** - Cancela la flecha que se esté trazando, libera la molécula arrastrada y deselecciona el átomo pendiente de enlace.
 
 ---
 
@@ -255,7 +301,7 @@ El modo **Ruta** incluye un botón **Guardar Imagen** que:
 Desarrollado por WM – 2026.
 Licencia Libre sin restricción
 
-**Versión 2.2.0** — Añadido el **modo Ruta** con lienzo de gran formato para diagramas metabólicos, **exportación a PNG**, y el nuevo grupo **fosfato –PO₃²⁻** disponible en el panel lateral, el parser y la nomenclatura.
+**Versión 2.3.0** — Añadido el **selector de orden de enlace (— = ≡)** en la Calculadora y en la Ruta, la herramienta **Seleccionar** en el modo Ruta para crear enlaces entre dos moléculas con el orden activo, los atajos de teclado **1/2/3**, y corregido el resaltado visual de selección (antes verde fluorescente, ahora azul `#1B5BA1`). También se añadió `outline: none` a los canvases para eliminar halos del navegador.
 
 ---
 
